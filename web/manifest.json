@@ -1,12 +1,13 @@
 {
-    "name": "assistant_planning",
-    "short_name": "assistant_planning",
+    "name": "Assistant de planification",
+    "short_name": "Planning",
     "start_url": ".",
+    "lang": "fr",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
+    "background_color": "#F8FAFC",
+    "theme_color": "#2563EB",
     "description": "Assistant de planification personnel",
-    "orientation": "portrait-primary",
+    "orientation": "any",
     "prefer_related_applications": false,
     "icons": [
         {

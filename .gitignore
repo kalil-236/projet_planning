@@ -46,3 +46,11 @@ app.*.map.json
 
 # Widget Preview related
 .widget_preview/
+
+# Secrets et signature (jamais dans Git)
+.env
+.env.*
+!.env.example
+*.jks
+*.keystore
+key.properties
