@@ -1,17 +1,21 @@
-# assistant_planning
+# Assistant de planification
 
-Assistant de planification personnel
+Application Flutter personnelle (Android et web), en français, qui importe un planning hebdomadaire, l'affiche et envoie des rappels. La référence complète est [SPEC_assistant_planning.md](SPEC_assistant_planning.md).
 
-## Getting Started
+## Lancer l'application
 
-This project is a starting point for a Flutter application.
+```powershell
+flutter pub get
+flutter run -d chrome     # web
+flutter run -d <appareil> # téléphone Android ou émulateur
+```
 
-A few resources to get you started if this is your first Flutter project:
+## Vérifier le code
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+```powershell
+powershell -ExecutionPolicy Bypass -File tool\ci.ps1
+```
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Ce script contrôle le formatage, lance `flutter analyze` et `flutter test`. Les tests vérifient aussi qu'il n'y a ni couleur codée en dur, ni icône hors Lucide, ni emoji.
+
+Les décisions techniques prises hors spécification sont listées dans [docs/DECISIONS.md](docs/DECISIONS.md).
