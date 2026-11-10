@@ -27,6 +27,10 @@ LocalDateTime localNow(Clock clock, String timezone) {
   );
 }
 
+/// Instant [utc] exprimé dans [timezone], pour la programmation des rappels.
+tz.TZDateTime toZoned(DateTime utc, String timezone) =>
+    tz.TZDateTime.from(utc, _location(timezone));
+
 /// Instant absolu d'une heure locale. À réserver aux notifications (5.1).
 DateTime toInstant(LocalDate date, LocalTime time, String timezone) {
   return tz.TZDateTime(

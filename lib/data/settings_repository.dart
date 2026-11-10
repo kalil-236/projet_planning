@@ -41,6 +41,21 @@ class SettingsRepository {
         );
   }
 
+  Future<bool> notificationPromptShown() async {
+    final rows = await _db.select(_db.settingsEntries).get();
+    return rows.isNotEmpty && rows.first.notificationPromptShown;
+  }
+
+  Future<void> markNotificationPromptShown() async {
+    final rows = await _db.select(_db.settingsEntries).get();
+    if (rows.isEmpty) await save(const AppSettings());
+    await _db
+        .update(_db.settingsEntries)
+        .write(
+          const SettingsEntriesCompanion(notificationPromptShown: Value(true)),
+        );
+  }
+
   AppSettings _toSettings(SettingsRow row) => AppSettings(
     dayStart: LocalTime.parse(row.dayStart),
     dayEnd: LocalTime.parse(row.dayEnd),

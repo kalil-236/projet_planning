@@ -1022,6 +1022,21 @@ class $SettingsEntriesTable extends SettingsEntries
     type: DriftSqlType.dateTime,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _notificationPromptShownMeta =
+      const VerificationMeta('notificationPromptShown');
+  @override
+  late final GeneratedColumn<bool> notificationPromptShown =
+      GeneratedColumn<bool>(
+        'notification_prompt_shown',
+        aliasedName,
+        false,
+        type: DriftSqlType.bool,
+        requiredDuringInsert: false,
+        defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("notification_prompt_shown" IN (0, 1))',
+        ),
+        defaultValue: const Constant(false),
+      );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -1033,6 +1048,7 @@ class $SettingsEntriesTable extends SettingsEntries
     morningSummaryTime,
     themeMode,
     updatedAt,
+    notificationPromptShown,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1122,6 +1138,15 @@ class $SettingsEntriesTable extends SettingsEntries
     } else if (isInserting) {
       context.missing(_updatedAtMeta);
     }
+    if (data.containsKey('notification_prompt_shown')) {
+      context.handle(
+        _notificationPromptShownMeta,
+        notificationPromptShown.isAcceptableOrUnknown(
+          data['notification_prompt_shown']!,
+          _notificationPromptShownMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -1167,6 +1192,10 @@ class $SettingsEntriesTable extends SettingsEntries
         DriftSqlType.dateTime,
         data['${effectivePrefix}updated_at'],
       )!,
+      notificationPromptShown: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}notification_prompt_shown'],
+      )!,
     );
   }
 
@@ -1186,6 +1215,9 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
   final String morningSummaryTime;
   final String themeMode;
   final DateTime updatedAt;
+
+  /// Propre à l'appareil : ne fait pas partie des réglages synchronisés.
+  final bool notificationPromptShown;
   const SettingsRow({
     required this.id,
     required this.dayStart,
@@ -1196,6 +1228,7 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
     required this.morningSummaryTime,
     required this.themeMode,
     required this.updatedAt,
+    required this.notificationPromptShown,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1209,6 +1242,7 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
     map['morning_summary_time'] = Variable<String>(morningSummaryTime);
     map['theme_mode'] = Variable<String>(themeMode);
     map['updated_at'] = Variable<DateTime>(updatedAt);
+    map['notification_prompt_shown'] = Variable<bool>(notificationPromptShown);
     return map;
   }
 
@@ -1223,6 +1257,7 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
       morningSummaryTime: Value(morningSummaryTime),
       themeMode: Value(themeMode),
       updatedAt: Value(updatedAt),
+      notificationPromptShown: Value(notificationPromptShown),
     );
   }
 
@@ -1245,6 +1280,9 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
       ),
       themeMode: serializer.fromJson<String>(json['themeMode']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      notificationPromptShown: serializer.fromJson<bool>(
+        json['notificationPromptShown'],
+      ),
     );
   }
   @override
@@ -1260,6 +1298,9 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
       'morningSummaryTime': serializer.toJson<String>(morningSummaryTime),
       'themeMode': serializer.toJson<String>(themeMode),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'notificationPromptShown': serializer.toJson<bool>(
+        notificationPromptShown,
+      ),
     };
   }
 
@@ -1273,6 +1314,7 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
     String? morningSummaryTime,
     String? themeMode,
     DateTime? updatedAt,
+    bool? notificationPromptShown,
   }) => SettingsRow(
     id: id ?? this.id,
     dayStart: dayStart ?? this.dayStart,
@@ -1283,6 +1325,8 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
     morningSummaryTime: morningSummaryTime ?? this.morningSummaryTime,
     themeMode: themeMode ?? this.themeMode,
     updatedAt: updatedAt ?? this.updatedAt,
+    notificationPromptShown:
+        notificationPromptShown ?? this.notificationPromptShown,
   );
   SettingsRow copyWithCompanion(SettingsEntriesCompanion data) {
     return SettingsRow(
@@ -1301,6 +1345,9 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
           : this.morningSummaryTime,
       themeMode: data.themeMode.present ? data.themeMode.value : this.themeMode,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      notificationPromptShown: data.notificationPromptShown.present
+          ? data.notificationPromptShown.value
+          : this.notificationPromptShown,
     );
   }
 
@@ -1315,7 +1362,8 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
           ..write('morningSummaryEnabled: $morningSummaryEnabled, ')
           ..write('morningSummaryTime: $morningSummaryTime, ')
           ..write('themeMode: $themeMode, ')
-          ..write('updatedAt: $updatedAt')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('notificationPromptShown: $notificationPromptShown')
           ..write(')'))
         .toString();
   }
@@ -1331,6 +1379,7 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
     morningSummaryTime,
     themeMode,
     updatedAt,
+    notificationPromptShown,
   );
   @override
   bool operator ==(Object other) =>
@@ -1344,7 +1393,8 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
           other.morningSummaryEnabled == this.morningSummaryEnabled &&
           other.morningSummaryTime == this.morningSummaryTime &&
           other.themeMode == this.themeMode &&
-          other.updatedAt == this.updatedAt);
+          other.updatedAt == this.updatedAt &&
+          other.notificationPromptShown == this.notificationPromptShown);
 }
 
 class SettingsEntriesCompanion extends UpdateCompanion<SettingsRow> {
@@ -1357,6 +1407,7 @@ class SettingsEntriesCompanion extends UpdateCompanion<SettingsRow> {
   final Value<String> morningSummaryTime;
   final Value<String> themeMode;
   final Value<DateTime> updatedAt;
+  final Value<bool> notificationPromptShown;
   const SettingsEntriesCompanion({
     this.id = const Value.absent(),
     this.dayStart = const Value.absent(),
@@ -1367,6 +1418,7 @@ class SettingsEntriesCompanion extends UpdateCompanion<SettingsRow> {
     this.morningSummaryTime = const Value.absent(),
     this.themeMode = const Value.absent(),
     this.updatedAt = const Value.absent(),
+    this.notificationPromptShown = const Value.absent(),
   });
   SettingsEntriesCompanion.insert({
     this.id = const Value.absent(),
@@ -1378,6 +1430,7 @@ class SettingsEntriesCompanion extends UpdateCompanion<SettingsRow> {
     required String morningSummaryTime,
     required String themeMode,
     required DateTime updatedAt,
+    this.notificationPromptShown = const Value.absent(),
   }) : dayStart = Value(dayStart),
        dayEnd = Value(dayEnd),
        timezone = Value(timezone),
@@ -1396,6 +1449,7 @@ class SettingsEntriesCompanion extends UpdateCompanion<SettingsRow> {
     Expression<String>? morningSummaryTime,
     Expression<String>? themeMode,
     Expression<DateTime>? updatedAt,
+    Expression<bool>? notificationPromptShown,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -1410,6 +1464,8 @@ class SettingsEntriesCompanion extends UpdateCompanion<SettingsRow> {
         'morning_summary_time': morningSummaryTime,
       if (themeMode != null) 'theme_mode': themeMode,
       if (updatedAt != null) 'updated_at': updatedAt,
+      if (notificationPromptShown != null)
+        'notification_prompt_shown': notificationPromptShown,
     });
   }
 
@@ -1423,6 +1479,7 @@ class SettingsEntriesCompanion extends UpdateCompanion<SettingsRow> {
     Value<String>? morningSummaryTime,
     Value<String>? themeMode,
     Value<DateTime>? updatedAt,
+    Value<bool>? notificationPromptShown,
   }) {
     return SettingsEntriesCompanion(
       id: id ?? this.id,
@@ -1435,6 +1492,8 @@ class SettingsEntriesCompanion extends UpdateCompanion<SettingsRow> {
       morningSummaryTime: morningSummaryTime ?? this.morningSummaryTime,
       themeMode: themeMode ?? this.themeMode,
       updatedAt: updatedAt ?? this.updatedAt,
+      notificationPromptShown:
+          notificationPromptShown ?? this.notificationPromptShown,
     );
   }
 
@@ -1470,6 +1529,11 @@ class SettingsEntriesCompanion extends UpdateCompanion<SettingsRow> {
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
+    if (notificationPromptShown.present) {
+      map['notification_prompt_shown'] = Variable<bool>(
+        notificationPromptShown.value,
+      );
+    }
     return map;
   }
 
@@ -1484,7 +1548,8 @@ class SettingsEntriesCompanion extends UpdateCompanion<SettingsRow> {
           ..write('morningSummaryEnabled: $morningSummaryEnabled, ')
           ..write('morningSummaryTime: $morningSummaryTime, ')
           ..write('themeMode: $themeMode, ')
-          ..write('updatedAt: $updatedAt')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('notificationPromptShown: $notificationPromptShown')
           ..write(')'))
         .toString();
   }
@@ -1943,6 +2008,7 @@ typedef $$SettingsEntriesTableCreateCompanionBuilder =
       required String morningSummaryTime,
       required String themeMode,
       required DateTime updatedAt,
+      Value<bool> notificationPromptShown,
     });
 typedef $$SettingsEntriesTableUpdateCompanionBuilder =
     SettingsEntriesCompanion Function({
@@ -1955,6 +2021,7 @@ typedef $$SettingsEntriesTableUpdateCompanionBuilder =
       Value<String> morningSummaryTime,
       Value<String> themeMode,
       Value<DateTime> updatedAt,
+      Value<bool> notificationPromptShown,
     });
 
 class $$SettingsEntriesTableFilterComposer
@@ -2008,6 +2075,11 @@ class $$SettingsEntriesTableFilterComposer
 
   ColumnFilters<DateTime> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get notificationPromptShown => $composableBuilder(
+    column: $table.notificationPromptShown,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -2065,6 +2137,11 @@ class $$SettingsEntriesTableOrderingComposer
     column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<bool> get notificationPromptShown => $composableBuilder(
+    column: $table.notificationPromptShown,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$SettingsEntriesTableAnnotationComposer
@@ -2108,6 +2185,11 @@ class $$SettingsEntriesTableAnnotationComposer
 
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<bool> get notificationPromptShown => $composableBuilder(
+    column: $table.notificationPromptShown,
+    builder: (column) => column,
+  );
 }
 
 class $$SettingsEntriesTableTableManager
@@ -2152,6 +2234,7 @@ class $$SettingsEntriesTableTableManager
                 Value<String> morningSummaryTime = const Value.absent(),
                 Value<String> themeMode = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
+                Value<bool> notificationPromptShown = const Value.absent(),
               }) => SettingsEntriesCompanion(
                 id: id,
                 dayStart: dayStart,
@@ -2162,6 +2245,7 @@ class $$SettingsEntriesTableTableManager
                 morningSummaryTime: morningSummaryTime,
                 themeMode: themeMode,
                 updatedAt: updatedAt,
+                notificationPromptShown: notificationPromptShown,
               ),
           createCompanionCallback:
               ({
@@ -2174,6 +2258,7 @@ class $$SettingsEntriesTableTableManager
                 required String morningSummaryTime,
                 required String themeMode,
                 required DateTime updatedAt,
+                Value<bool> notificationPromptShown = const Value.absent(),
               }) => SettingsEntriesCompanion.insert(
                 id: id,
                 dayStart: dayStart,
@@ -2184,6 +2269,7 @@ class $$SettingsEntriesTableTableManager
                 morningSummaryTime: morningSummaryTime,
                 themeMode: themeMode,
                 updatedAt: updatedAt,
+                notificationPromptShown: notificationPromptShown,
               ),
           withReferenceMapper: (p0) => p0
               .map(

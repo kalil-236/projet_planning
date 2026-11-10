@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -13,6 +14,7 @@ import '../domain/app_settings.dart';
 import '../domain/local_date.dart';
 import '../domain/local_time.dart';
 import '../domain/task.dart';
+import '../notifications/notification_gateway.dart';
 import '../notifications/reminder_scheduler.dart';
 
 final clockProvider = Provider<Clock>((ref) => const SystemClock());
@@ -23,8 +25,11 @@ final databaseProvider = Provider<AppDatabase>((ref) {
   return database;
 });
 
-final reminderSchedulerProvider = Provider<ReminderScheduler>(
-  (ref) => const NoopReminderScheduler(),
+/// `null` hors d'Android : les rappels programmés n'existent pas sur le web.
+final notificationGatewayProvider = Provider<NotificationGateway?>(
+  (ref) => !kIsWeb && defaultTargetPlatform == TargetPlatform.android
+      ? AndroidNotificationGateway()
+      : null,
 );
 
 final taskRepositoryProvider = Provider<TaskRepository>(
@@ -35,6 +40,27 @@ final settingsRepositoryProvider = Provider<SettingsRepository>(
   (ref) =>
       SettingsRepository(ref.watch(databaseProvider), ref.watch(clockProvider)),
 );
+
+final reminderSchedulerProvider = Provider<ReminderScheduler>((ref) {
+  final gateway = ref.watch(notificationGatewayProvider);
+  if (gateway == null) return const NoopReminderScheduler();
+  return LocalReminderScheduler(
+    tasks: ref.watch(taskRepositoryProvider),
+    settings: ref.watch(settingsRepositoryProvider),
+    clock: ref.watch(clockProvider),
+    gateway: gateway,
+  );
+});
+
+/// Reprogramme au lancement et au retour au premier plan (section 10.2).
+final reminderLifecycleProvider = Provider<void>((ref) {
+  final scheduler = ref.watch(reminderSchedulerProvider);
+  unawaited(scheduler.rescheduleAll());
+  final lifecycle = AppLifecycleListener(
+    onResume: () => unawaited(scheduler.rescheduleAll()),
+  );
+  ref.onDispose(lifecycle.dispose);
+});
 
 final planningServiceProvider = Provider<PlanningService>(
   (ref) => PlanningService(

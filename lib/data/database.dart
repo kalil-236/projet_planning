@@ -39,6 +39,10 @@ class SettingsEntries extends Table {
   TextColumn get themeMode => text()();
   DateTimeColumn get updatedAt => dateTime()();
 
+  /// Propre à l'appareil : ne fait pas partie des réglages synchronisés.
+  BoolColumn get notificationPromptShown =>
+      boolean().withDefault(const Constant(false))();
+
   @override
   Set<Column<Object>> get primaryKey => {id};
 }
@@ -48,7 +52,19 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.executor);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+    onUpgrade: (migrator, from, to) async {
+      if (from < 2) {
+        await migrator.addColumn(
+          settingsEntries,
+          settingsEntries.notificationPromptShown,
+        );
+      }
+    },
+  );
 }
 
 QueryExecutor openAppDatabase() => driftDatabase(

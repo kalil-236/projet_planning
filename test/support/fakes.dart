@@ -2,7 +2,9 @@ import 'package:assistant_planning/core/clock.dart';
 import 'package:assistant_planning/domain/category.dart';
 import 'package:assistant_planning/domain/local_date.dart';
 import 'package:assistant_planning/domain/local_time.dart';
+import 'package:assistant_planning/domain/notification_plan.dart';
 import 'package:assistant_planning/domain/task.dart';
+import 'package:assistant_planning/notifications/notification_gateway.dart';
 
 /// Lundi 2026-11-09 : le mardi de référence de la spécification est le 10.
 const monday = LocalDate(2026, 11, 9);
@@ -24,6 +26,63 @@ class FakeClock implements Clock {
   DateTime nowUtc() => _now;
 
   void advance(Duration duration) => _now = _now.add(duration);
+}
+
+class FakeNotificationGateway implements NotificationGateway {
+  final Map<int, PlannedNotification> pending = {};
+  final List<int> cancelled = [];
+  final List<bool> exactModes = [];
+  bool allowed = false;
+  bool exact = true;
+  bool batteryIgnored = false;
+  int permissionRequests = 0;
+  int exactSettingsOpened = 0;
+  Object? scheduleError;
+
+  @override
+  Future<bool> notificationsAllowed() async => allowed;
+
+  @override
+  Future<bool> requestNotifications({
+    bool openSettingsIfBlocked = false,
+  }) async {
+    permissionRequests++;
+    return allowed;
+  }
+
+  @override
+  Future<bool> canScheduleExact() async => exact;
+
+  @override
+  Future<void> openExactAlarmSettings() async => exactSettingsOpened++;
+
+  @override
+  Future<bool> batteryOptimizationIgnored() async => batteryIgnored;
+
+  @override
+  Future<void> requestIgnoreBatteryOptimization() async =>
+      batteryIgnored = true;
+
+  @override
+  Future<Set<int>> pendingIds() async => pending.keys.toSet();
+
+  @override
+  Future<void> cancel(int id) async {
+    cancelled.add(id);
+    pending.remove(id);
+  }
+
+  @override
+  Future<void> schedule(
+    PlannedNotification notification, {
+    required String timezone,
+    required bool exact,
+  }) async {
+    final error = scheduleError;
+    if (error != null) throw error;
+    exactModes.add(exact);
+    pending[notification.id] = notification;
+  }
 }
 
 final fixedInstant = DateTime.utc(2026, 11, 10, 7);
