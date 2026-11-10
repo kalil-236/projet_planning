@@ -23,18 +23,26 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      # Tolère un préfixe « NOM= », des espaces, des guillemets et une barre
+      # oblique finale dans les variables du dépôt.
       - name: Vérifier la configuration
         env:
-          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
-          SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
+          RAW_URL: ${{ vars.SUPABASE_URL }}
+          RAW_KEY: ${{ vars.SUPABASE_ANON_KEY }}
         run: |
-          case "$SUPABASE_URL" in
+          url="$(printf '%s' "$RAW_URL" | tr -d '[:space:]"')"
+          url="${url##*=}"
+          url="$(printf '%s' "$url" | sed 's:/*$::')"
+          key="$(printf '%s' "$RAW_KEY" | tr -d '[:space:]"')"
+          key="${key##*=}"
+          case "$url" in
             https://*.supabase.co) ;;
-            *) echo "::error::SUPABASE_URL doit valoir https://xxx.supabase.co, sans préfixe ni espace."; exit 1 ;;
+            *) echo "::error::SUPABASE_URL lue : '$url'. Attendu : https://xxx.supabase.co"; exit 1 ;;
           esac
-          case "$SUPABASE_ANON_KEY" in
-            ""|*=*|*" "*) echo "::error::SUPABASE_ANON_KEY doit contenir la clé seule, sans préfixe ni espace."; exit 1 ;;
-          esac
+          if [ -z "$key" ]; then echo "::error::SUPABASE_ANON_KEY est vide."; exit 1; fi
+          echo "::add-mask::$key"
+          echo "SUPABASE_URL=$url" >> "$GITHUB_ENV"
+          echo "SUPABASE_ANON_KEY=$key" >> "$GITHUB_ENV"
       - uses: actions/checkout@v5
       - uses: subosito/flutter-action@v2
         with:
@@ -43,9 +51,6 @@ jobs:
       - run: flutter pub get
       - run: flutter test
       - name: Compiler le web
-        env:
-          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
-          SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
         run: >-
           flutter build web --release
           --base-href "/${{ github.event.repository.name }}/"
