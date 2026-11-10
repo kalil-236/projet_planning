@@ -51,8 +51,74 @@ class TaskRepository {
 
   Future<void> softDelete(String id, DateTime at) {
     return (_db.update(_db.tasks)..where((t) => t.id.equals(id))).write(
-      TasksCompanion(deletedAt: Value(at), updatedAt: Value(at)),
+      TasksCompanion(
+        deletedAt: Value(at),
+        updatedAt: Value(at),
+        pendingSync: const Value(true),
+      ),
     );
+  }
+
+  /// Tâches à envoyer au serveur, y compris les suppressions logiques.
+  Future<List<Task>> pendingSync() async {
+    final query = _db.select(_db.tasks)
+      ..where((t) => t.pendingSync.equals(true));
+    return (await query.get()).map(_toTask).toList();
+  }
+
+  /// Ne retire la marque que si la tâche n'a pas changé depuis son envoi.
+  Future<void> markPushed(List<Task> pushed) => _db.transaction(() async {
+    for (final task in pushed) {
+      await (_db.update(_db.tasks)..where(
+            (t) => t.id.equals(task.id) & t.updatedAt.equals(task.updatedAt),
+          ))
+          .write(const TasksCompanion(pendingSync: Value(false)));
+    }
+  });
+
+  /// Applique les tâches du serveur : le plus récent gagne (section 11.3).
+  /// Renvoie le nombre de tâches modifiées localement.
+  Future<int> applyRemote(List<Task> remote) => _db.transaction(() async {
+    final local = await _updatedAtById(remote.map((task) => task.id).toList());
+    final newer = remote.where((task) {
+      final current = local[task.id];
+      return current == null || task.updatedAt.isAfter(current);
+    }).toList();
+    await _db.batch((batch) {
+      batch.insertAllOnConflictUpdate(_db.tasks, [
+        for (final task in newer)
+          _toCompanion(task).copyWith(pendingSync: const Value(false)),
+      ]);
+    });
+    return newer.length;
+  });
+
+  Future<DateTime?> tasksCursor() async {
+    final row = await _db.select(_db.syncCursors).getSingleOrNull();
+    return row?.tasksSyncedAt?.toUtc();
+  }
+
+  Future<void> saveTasksCursor(DateTime cursor) => _db
+      .into(_db.syncCursors)
+      .insertOnConflictUpdate(
+        SyncCursorsCompanion.insert(
+          id: const Value(1),
+          tasksSyncedAt: Value(cursor),
+        ),
+      );
+
+  Future<Map<String, DateTime>> _updatedAtById(List<String> ids) async {
+    const chunk = 500;
+    final result = <String, DateTime>{};
+    for (var i = 0; i < ids.length; i += chunk) {
+      final end = i + chunk < ids.length ? i + chunk : ids.length;
+      final query = _db.select(_db.tasks)
+        ..where((t) => t.id.isIn(ids.sublist(i, end)));
+      for (final row in await query.get()) {
+        result[row.id] = row.updatedAt;
+      }
+    }
+    return result;
   }
 
   Future<void> applyImport(ImportChanges changes, DateTime at) {
@@ -102,5 +168,6 @@ class TaskRepository {
     createdAt: task.createdAt,
     updatedAt: task.updatedAt,
     deletedAt: Value(task.deletedAt),
+    pendingSync: const Value(true),
   );
 }

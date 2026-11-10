@@ -23,6 +23,9 @@ class Tasks extends Table {
   DateTimeColumn get updatedAt => dateTime()();
   DateTimeColumn get deletedAt => dateTime().nullable()();
 
+  /// Vrai tant que la dernière écriture locale n'a pas été envoyée au serveur.
+  BoolColumn get pendingSync => boolean().withDefault(const Constant(true))();
+
   @override
   Set<Column<Object>> get primaryKey => {id};
 }
@@ -43,16 +46,28 @@ class SettingsEntries extends Table {
   BoolColumn get notificationPromptShown =>
       boolean().withDefault(const Constant(false))();
 
+  BoolColumn get pendingSync => boolean().withDefault(const Constant(true))();
+
   @override
   Set<Column<Object>> get primaryKey => {id};
 }
 
-@DriftDatabase(tables: [Tasks, SettingsEntries])
+/// Une seule ligne : position de lecture des tâches sur le serveur.
+@DataClassName('SyncCursorRow')
+class SyncCursors extends Table {
+  IntColumn get id => integer().withDefault(const Constant(1))();
+  DateTimeColumn get tasksSyncedAt => dateTime().nullable()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+@DriftDatabase(tables: [Tasks, SettingsEntries, SyncCursors])
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.executor);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -62,6 +77,12 @@ class AppDatabase extends _$AppDatabase {
           settingsEntries,
           settingsEntries.notificationPromptShown,
         );
+      }
+      if (from < 3) {
+        // Valeur par défaut vraie : les données existantes seront envoyées.
+        await migrator.addColumn(tasks, tasks.pendingSync);
+        await migrator.addColumn(settingsEntries, settingsEntries.pendingSync);
+        await migrator.createTable(syncCursors);
       }
     },
   );

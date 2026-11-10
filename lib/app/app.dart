@@ -15,6 +15,7 @@ class AssistantPlanningApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(reminderLifecycleProvider);
+    ref.watch(syncLifecycleProvider);
     return MaterialApp.router(
       title: 'Assistant de planification',
       debugShowCheckedModeBanner: false,

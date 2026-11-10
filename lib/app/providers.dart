@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' show Supabase;
 
 import '../core/clock.dart';
 import '../core/time_zones.dart';
@@ -16,6 +17,9 @@ import '../domain/local_time.dart';
 import '../domain/task.dart';
 import '../notifications/notification_gateway.dart';
 import '../notifications/reminder_scheduler.dart';
+import '../sync/supabase_sync_backend.dart';
+import '../sync/sync_backend.dart';
+import '../sync/sync_service.dart';
 
 final clockProvider = Provider<Clock>((ref) => const SystemClock());
 
@@ -62,12 +66,49 @@ final reminderLifecycleProvider = Provider<void>((ref) {
   ref.onDispose(lifecycle.dispose);
 });
 
+/// `null` tant que Supabase n'est pas configuré : l'application reste locale.
+final syncBackendProvider = Provider<SyncBackend?>(
+  (ref) => SupabaseConfig.ready
+      ? SupabaseSyncBackend(Supabase.instance.client)
+      : null,
+);
+
+/// Sur le web, les données sont liées au compte : la connexion est obligatoire.
+/// Sur Android, l'application et les rappels restent utilisables sans compte.
+final loginRequiredProvider = Provider<bool>((ref) => kIsWeb);
+
+final syncServiceProvider = Provider<SyncService?>((ref) {
+  final backend = ref.watch(syncBackendProvider);
+  if (backend == null) return null;
+  final service = SyncService(
+    backend: backend,
+    tasks: ref.watch(taskRepositoryProvider),
+    settings: ref.watch(settingsRepositoryProvider),
+    scheduler: ref.watch(reminderSchedulerProvider),
+    clock: ref.watch(clockProvider),
+  );
+  ref.onDispose(service.dispose);
+  return service;
+});
+
+/// Synchronise au lancement et au retour au premier plan (section 11.5).
+final syncLifecycleProvider = Provider<void>((ref) {
+  final service = ref.watch(syncServiceProvider);
+  if (service == null) return;
+  service.start();
+  final lifecycle = AppLifecycleListener(
+    onResume: () => unawaited(service.requestSync()),
+  );
+  ref.onDispose(lifecycle.dispose);
+});
+
 final planningServiceProvider = Provider<PlanningService>(
   (ref) => PlanningService(
     tasks: ref.watch(taskRepositoryProvider),
     settings: ref.watch(settingsRepositoryProvider),
     clock: ref.watch(clockProvider),
     scheduler: ref.watch(reminderSchedulerProvider),
+    sync: ref.watch(syncServiceProvider) ?? const NoopSyncTrigger(),
   ),
 );
 

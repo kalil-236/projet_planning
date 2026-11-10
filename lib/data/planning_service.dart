@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 
@@ -13,6 +15,7 @@ import '../domain/plan_parser.dart';
 import '../domain/task.dart';
 import '../domain/task_ops.dart';
 import '../notifications/reminder_scheduler.dart';
+import '../sync/sync_service.dart';
 import 'settings_repository.dart';
 import 'task_repository.dart';
 
@@ -37,12 +40,14 @@ class PlanningService {
     required this._settings,
     required this._clock,
     required this._scheduler,
+    this._sync = const NoopSyncTrigger(),
   });
 
   final TaskRepository _tasks;
   final SettingsRepository _settings;
   final Clock _clock;
   final ReminderScheduler _scheduler;
+  final SyncTrigger _sync;
   final Uuid _uuid = const Uuid();
 
   Future<void> addTask({
@@ -71,7 +76,7 @@ class PlanningService {
         updatedAt: now,
       ),
     );
-    await _scheduler.rescheduleAll();
+    await _afterWrite();
   }
 
   /// Enregistre une édition. Changer l'heure d'une tâche importée la marque
@@ -105,7 +110,7 @@ class PlanningService {
   Future<bool> _saveShift(Task? moved) async {
     if (moved == null) return false;
     await _tasks.upsert(moved);
-    await _scheduler.rescheduleAll();
+    await _afterWrite();
     return true;
   }
 
@@ -124,12 +129,12 @@ class PlanningService {
   Future<void> applyDayShift(DayShiftPlan plan) async {
     if (!plan.canApply) return;
     await _tasks.upsertAll(plan.shifted);
-    await _scheduler.rescheduleAll();
+    await _afterWrite();
   }
 
   Future<void> deleteTask(Task task) async {
     await _tasks.softDelete(task.id, _clock.nowUtc());
-    await _scheduler.rescheduleAll();
+    await _afterWrite();
   }
 
   Future<ImportSummary> importPlan({
@@ -161,7 +166,7 @@ class PlanningService {
         settings.copyWith(dayStart: dayStart, dayEnd: dayEnd),
       );
     }
-    await _scheduler.rescheduleAll();
+    await _afterWrite();
     return ImportSummary(
       inserted: changes.toInsert.length,
       replaced: changes.toRemove.length,
@@ -172,12 +177,18 @@ class PlanningService {
   /// Les tâches gardent leur date locale ; seuls les rappels sont recalculés.
   Future<void> saveSettings(AppSettings settings) async {
     await _settings.save(settings);
-    await _scheduler.rescheduleAll();
+    await _afterWrite();
   }
 
   Future<void> _save(Task task) async {
     await _tasks.upsert(task.copyWith(updatedAt: _clock.nowUtc()));
+    await _afterWrite();
+  }
+
+  /// La synchronisation n'est pas attendue : l'écriture locale fait foi.
+  Future<void> _afterWrite() async {
     await _scheduler.rescheduleAll();
+    unawaited(_sync.requestSync());
   }
 
   String? _cleanNotes(String? notes) {

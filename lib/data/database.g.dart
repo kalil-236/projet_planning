@@ -184,6 +184,21 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, TaskRow> {
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _pendingSyncMeta = const VerificationMeta(
+    'pendingSync',
+  );
+  @override
+  late final GeneratedColumn<bool> pendingSync = GeneratedColumn<bool>(
+    'pending_sync',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("pending_sync" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -202,6 +217,7 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, TaskRow> {
     createdAt,
     updatedAt,
     deletedAt,
+    pendingSync,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -331,6 +347,15 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, TaskRow> {
         deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
       );
     }
+    if (data.containsKey('pending_sync')) {
+      context.handle(
+        _pendingSyncMeta,
+        pendingSync.isAcceptableOrUnknown(
+          data['pending_sync']!,
+          _pendingSyncMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -404,6 +429,10 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, TaskRow> {
         DriftSqlType.dateTime,
         data['${effectivePrefix}deleted_at'],
       ),
+      pendingSync: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}pending_sync'],
+      )!,
     );
   }
 
@@ -430,6 +459,9 @@ class TaskRow extends DataClass implements Insertable<TaskRow> {
   final DateTime createdAt;
   final DateTime updatedAt;
   final DateTime? deletedAt;
+
+  /// Vrai tant que la dernière écriture locale n'a pas été envoyée au serveur.
+  final bool pendingSync;
   const TaskRow({
     required this.id,
     required this.title,
@@ -447,6 +479,7 @@ class TaskRow extends DataClass implements Insertable<TaskRow> {
     required this.createdAt,
     required this.updatedAt,
     this.deletedAt,
+    required this.pendingSync,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -477,6 +510,7 @@ class TaskRow extends DataClass implements Insertable<TaskRow> {
     if (!nullToAbsent || deletedAt != null) {
       map['deleted_at'] = Variable<DateTime>(deletedAt);
     }
+    map['pending_sync'] = Variable<bool>(pendingSync);
     return map;
   }
 
@@ -508,6 +542,7 @@ class TaskRow extends DataClass implements Insertable<TaskRow> {
       deletedAt: deletedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(deletedAt),
+      pendingSync: Value(pendingSync),
     );
   }
 
@@ -535,6 +570,7 @@ class TaskRow extends DataClass implements Insertable<TaskRow> {
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+      pendingSync: serializer.fromJson<bool>(json['pendingSync']),
     );
   }
   @override
@@ -557,6 +593,7 @@ class TaskRow extends DataClass implements Insertable<TaskRow> {
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+      'pendingSync': serializer.toJson<bool>(pendingSync),
     };
   }
 
@@ -577,6 +614,7 @@ class TaskRow extends DataClass implements Insertable<TaskRow> {
     DateTime? createdAt,
     DateTime? updatedAt,
     Value<DateTime?> deletedAt = const Value.absent(),
+    bool? pendingSync,
   }) => TaskRow(
     id: id ?? this.id,
     title: title ?? this.title,
@@ -600,6 +638,7 @@ class TaskRow extends DataClass implements Insertable<TaskRow> {
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
     deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+    pendingSync: pendingSync ?? this.pendingSync,
   );
   TaskRow copyWithCompanion(TasksCompanion data) {
     return TaskRow(
@@ -627,6 +666,9 @@ class TaskRow extends DataClass implements Insertable<TaskRow> {
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+      pendingSync: data.pendingSync.present
+          ? data.pendingSync.value
+          : this.pendingSync,
     );
   }
 
@@ -648,7 +690,8 @@ class TaskRow extends DataClass implements Insertable<TaskRow> {
           ..write('importBatchId: $importBatchId, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
-          ..write('deletedAt: $deletedAt')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('pendingSync: $pendingSync')
           ..write(')'))
         .toString();
   }
@@ -671,6 +714,7 @@ class TaskRow extends DataClass implements Insertable<TaskRow> {
     createdAt,
     updatedAt,
     deletedAt,
+    pendingSync,
   );
   @override
   bool operator ==(Object other) =>
@@ -691,7 +735,8 @@ class TaskRow extends DataClass implements Insertable<TaskRow> {
           other.importBatchId == this.importBatchId &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
-          other.deletedAt == this.deletedAt);
+          other.deletedAt == this.deletedAt &&
+          other.pendingSync == this.pendingSync);
 }
 
 class TasksCompanion extends UpdateCompanion<TaskRow> {
@@ -711,6 +756,7 @@ class TasksCompanion extends UpdateCompanion<TaskRow> {
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<DateTime?> deletedAt;
+  final Value<bool> pendingSync;
   final Value<int> rowid;
   const TasksCompanion({
     this.id = const Value.absent(),
@@ -729,6 +775,7 @@ class TasksCompanion extends UpdateCompanion<TaskRow> {
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
+    this.pendingSync = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   TasksCompanion.insert({
@@ -748,6 +795,7 @@ class TasksCompanion extends UpdateCompanion<TaskRow> {
     required DateTime createdAt,
     required DateTime updatedAt,
     this.deletedAt = const Value.absent(),
+    this.pendingSync = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        title = Value(title),
@@ -773,6 +821,7 @@ class TasksCompanion extends UpdateCompanion<TaskRow> {
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<DateTime>? deletedAt,
+    Expression<bool>? pendingSync,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -792,6 +841,7 @@ class TasksCompanion extends UpdateCompanion<TaskRow> {
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (deletedAt != null) 'deleted_at': deletedAt,
+      if (pendingSync != null) 'pending_sync': pendingSync,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -813,6 +863,7 @@ class TasksCompanion extends UpdateCompanion<TaskRow> {
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<DateTime?>? deletedAt,
+    Value<bool>? pendingSync,
     Value<int>? rowid,
   }) {
     return TasksCompanion(
@@ -832,6 +883,7 @@ class TasksCompanion extends UpdateCompanion<TaskRow> {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       deletedAt: deletedAt ?? this.deletedAt,
+      pendingSync: pendingSync ?? this.pendingSync,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -887,6 +939,9 @@ class TasksCompanion extends UpdateCompanion<TaskRow> {
     if (deletedAt.present) {
       map['deleted_at'] = Variable<DateTime>(deletedAt.value);
     }
+    if (pendingSync.present) {
+      map['pending_sync'] = Variable<bool>(pendingSync.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -912,6 +967,7 @@ class TasksCompanion extends UpdateCompanion<TaskRow> {
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('deletedAt: $deletedAt, ')
+          ..write('pendingSync: $pendingSync, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -1037,6 +1093,21 @@ class $SettingsEntriesTable extends SettingsEntries
         ),
         defaultValue: const Constant(false),
       );
+  static const VerificationMeta _pendingSyncMeta = const VerificationMeta(
+    'pendingSync',
+  );
+  @override
+  late final GeneratedColumn<bool> pendingSync = GeneratedColumn<bool>(
+    'pending_sync',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("pending_sync" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -1049,6 +1120,7 @@ class $SettingsEntriesTable extends SettingsEntries
     themeMode,
     updatedAt,
     notificationPromptShown,
+    pendingSync,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1147,6 +1219,15 @@ class $SettingsEntriesTable extends SettingsEntries
         ),
       );
     }
+    if (data.containsKey('pending_sync')) {
+      context.handle(
+        _pendingSyncMeta,
+        pendingSync.isAcceptableOrUnknown(
+          data['pending_sync']!,
+          _pendingSyncMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -1196,6 +1277,10 @@ class $SettingsEntriesTable extends SettingsEntries
         DriftSqlType.bool,
         data['${effectivePrefix}notification_prompt_shown'],
       )!,
+      pendingSync: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}pending_sync'],
+      )!,
     );
   }
 
@@ -1218,6 +1303,7 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
 
   /// Propre à l'appareil : ne fait pas partie des réglages synchronisés.
   final bool notificationPromptShown;
+  final bool pendingSync;
   const SettingsRow({
     required this.id,
     required this.dayStart,
@@ -1229,6 +1315,7 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
     required this.themeMode,
     required this.updatedAt,
     required this.notificationPromptShown,
+    required this.pendingSync,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1243,6 +1330,7 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
     map['theme_mode'] = Variable<String>(themeMode);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     map['notification_prompt_shown'] = Variable<bool>(notificationPromptShown);
+    map['pending_sync'] = Variable<bool>(pendingSync);
     return map;
   }
 
@@ -1258,6 +1346,7 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
       themeMode: Value(themeMode),
       updatedAt: Value(updatedAt),
       notificationPromptShown: Value(notificationPromptShown),
+      pendingSync: Value(pendingSync),
     );
   }
 
@@ -1283,6 +1372,7 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
       notificationPromptShown: serializer.fromJson<bool>(
         json['notificationPromptShown'],
       ),
+      pendingSync: serializer.fromJson<bool>(json['pendingSync']),
     );
   }
   @override
@@ -1301,6 +1391,7 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
       'notificationPromptShown': serializer.toJson<bool>(
         notificationPromptShown,
       ),
+      'pendingSync': serializer.toJson<bool>(pendingSync),
     };
   }
 
@@ -1315,6 +1406,7 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
     String? themeMode,
     DateTime? updatedAt,
     bool? notificationPromptShown,
+    bool? pendingSync,
   }) => SettingsRow(
     id: id ?? this.id,
     dayStart: dayStart ?? this.dayStart,
@@ -1327,6 +1419,7 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
     updatedAt: updatedAt ?? this.updatedAt,
     notificationPromptShown:
         notificationPromptShown ?? this.notificationPromptShown,
+    pendingSync: pendingSync ?? this.pendingSync,
   );
   SettingsRow copyWithCompanion(SettingsEntriesCompanion data) {
     return SettingsRow(
@@ -1348,6 +1441,9 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
       notificationPromptShown: data.notificationPromptShown.present
           ? data.notificationPromptShown.value
           : this.notificationPromptShown,
+      pendingSync: data.pendingSync.present
+          ? data.pendingSync.value
+          : this.pendingSync,
     );
   }
 
@@ -1363,7 +1459,8 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
           ..write('morningSummaryTime: $morningSummaryTime, ')
           ..write('themeMode: $themeMode, ')
           ..write('updatedAt: $updatedAt, ')
-          ..write('notificationPromptShown: $notificationPromptShown')
+          ..write('notificationPromptShown: $notificationPromptShown, ')
+          ..write('pendingSync: $pendingSync')
           ..write(')'))
         .toString();
   }
@@ -1380,6 +1477,7 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
     themeMode,
     updatedAt,
     notificationPromptShown,
+    pendingSync,
   );
   @override
   bool operator ==(Object other) =>
@@ -1394,7 +1492,8 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
           other.morningSummaryTime == this.morningSummaryTime &&
           other.themeMode == this.themeMode &&
           other.updatedAt == this.updatedAt &&
-          other.notificationPromptShown == this.notificationPromptShown);
+          other.notificationPromptShown == this.notificationPromptShown &&
+          other.pendingSync == this.pendingSync);
 }
 
 class SettingsEntriesCompanion extends UpdateCompanion<SettingsRow> {
@@ -1408,6 +1507,7 @@ class SettingsEntriesCompanion extends UpdateCompanion<SettingsRow> {
   final Value<String> themeMode;
   final Value<DateTime> updatedAt;
   final Value<bool> notificationPromptShown;
+  final Value<bool> pendingSync;
   const SettingsEntriesCompanion({
     this.id = const Value.absent(),
     this.dayStart = const Value.absent(),
@@ -1419,6 +1519,7 @@ class SettingsEntriesCompanion extends UpdateCompanion<SettingsRow> {
     this.themeMode = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.notificationPromptShown = const Value.absent(),
+    this.pendingSync = const Value.absent(),
   });
   SettingsEntriesCompanion.insert({
     this.id = const Value.absent(),
@@ -1431,6 +1532,7 @@ class SettingsEntriesCompanion extends UpdateCompanion<SettingsRow> {
     required String themeMode,
     required DateTime updatedAt,
     this.notificationPromptShown = const Value.absent(),
+    this.pendingSync = const Value.absent(),
   }) : dayStart = Value(dayStart),
        dayEnd = Value(dayEnd),
        timezone = Value(timezone),
@@ -1450,6 +1552,7 @@ class SettingsEntriesCompanion extends UpdateCompanion<SettingsRow> {
     Expression<String>? themeMode,
     Expression<DateTime>? updatedAt,
     Expression<bool>? notificationPromptShown,
+    Expression<bool>? pendingSync,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -1466,6 +1569,7 @@ class SettingsEntriesCompanion extends UpdateCompanion<SettingsRow> {
       if (updatedAt != null) 'updated_at': updatedAt,
       if (notificationPromptShown != null)
         'notification_prompt_shown': notificationPromptShown,
+      if (pendingSync != null) 'pending_sync': pendingSync,
     });
   }
 
@@ -1480,6 +1584,7 @@ class SettingsEntriesCompanion extends UpdateCompanion<SettingsRow> {
     Value<String>? themeMode,
     Value<DateTime>? updatedAt,
     Value<bool>? notificationPromptShown,
+    Value<bool>? pendingSync,
   }) {
     return SettingsEntriesCompanion(
       id: id ?? this.id,
@@ -1494,6 +1599,7 @@ class SettingsEntriesCompanion extends UpdateCompanion<SettingsRow> {
       updatedAt: updatedAt ?? this.updatedAt,
       notificationPromptShown:
           notificationPromptShown ?? this.notificationPromptShown,
+      pendingSync: pendingSync ?? this.pendingSync,
     );
   }
 
@@ -1534,6 +1640,9 @@ class SettingsEntriesCompanion extends UpdateCompanion<SettingsRow> {
         notificationPromptShown.value,
       );
     }
+    if (pendingSync.present) {
+      map['pending_sync'] = Variable<bool>(pendingSync.value);
+    }
     return map;
   }
 
@@ -1549,7 +1658,220 @@ class SettingsEntriesCompanion extends UpdateCompanion<SettingsRow> {
           ..write('morningSummaryTime: $morningSummaryTime, ')
           ..write('themeMode: $themeMode, ')
           ..write('updatedAt: $updatedAt, ')
-          ..write('notificationPromptShown: $notificationPromptShown')
+          ..write('notificationPromptShown: $notificationPromptShown, ')
+          ..write('pendingSync: $pendingSync')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $SyncCursorsTable extends SyncCursors
+    with TableInfo<$SyncCursorsTable, SyncCursorRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SyncCursorsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  static const VerificationMeta _tasksSyncedAtMeta = const VerificationMeta(
+    'tasksSyncedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> tasksSyncedAt =
+      GeneratedColumn<DateTime>(
+        'tasks_synced_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  @override
+  List<GeneratedColumn> get $columns => [id, tasksSyncedAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'sync_cursors';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<SyncCursorRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('tasks_synced_at')) {
+      context.handle(
+        _tasksSyncedAtMeta,
+        tasksSyncedAt.isAcceptableOrUnknown(
+          data['tasks_synced_at']!,
+          _tasksSyncedAtMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  SyncCursorRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SyncCursorRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      tasksSyncedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}tasks_synced_at'],
+      ),
+    );
+  }
+
+  @override
+  $SyncCursorsTable createAlias(String alias) {
+    return $SyncCursorsTable(attachedDatabase, alias);
+  }
+}
+
+class SyncCursorRow extends DataClass implements Insertable<SyncCursorRow> {
+  final int id;
+  final DateTime? tasksSyncedAt;
+  const SyncCursorRow({required this.id, this.tasksSyncedAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    if (!nullToAbsent || tasksSyncedAt != null) {
+      map['tasks_synced_at'] = Variable<DateTime>(tasksSyncedAt);
+    }
+    return map;
+  }
+
+  SyncCursorsCompanion toCompanion(bool nullToAbsent) {
+    return SyncCursorsCompanion(
+      id: Value(id),
+      tasksSyncedAt: tasksSyncedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(tasksSyncedAt),
+    );
+  }
+
+  factory SyncCursorRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SyncCursorRow(
+      id: serializer.fromJson<int>(json['id']),
+      tasksSyncedAt: serializer.fromJson<DateTime?>(json['tasksSyncedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'tasksSyncedAt': serializer.toJson<DateTime?>(tasksSyncedAt),
+    };
+  }
+
+  SyncCursorRow copyWith({
+    int? id,
+    Value<DateTime?> tasksSyncedAt = const Value.absent(),
+  }) => SyncCursorRow(
+    id: id ?? this.id,
+    tasksSyncedAt: tasksSyncedAt.present
+        ? tasksSyncedAt.value
+        : this.tasksSyncedAt,
+  );
+  SyncCursorRow copyWithCompanion(SyncCursorsCompanion data) {
+    return SyncCursorRow(
+      id: data.id.present ? data.id.value : this.id,
+      tasksSyncedAt: data.tasksSyncedAt.present
+          ? data.tasksSyncedAt.value
+          : this.tasksSyncedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SyncCursorRow(')
+          ..write('id: $id, ')
+          ..write('tasksSyncedAt: $tasksSyncedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, tasksSyncedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SyncCursorRow &&
+          other.id == this.id &&
+          other.tasksSyncedAt == this.tasksSyncedAt);
+}
+
+class SyncCursorsCompanion extends UpdateCompanion<SyncCursorRow> {
+  final Value<int> id;
+  final Value<DateTime?> tasksSyncedAt;
+  const SyncCursorsCompanion({
+    this.id = const Value.absent(),
+    this.tasksSyncedAt = const Value.absent(),
+  });
+  SyncCursorsCompanion.insert({
+    this.id = const Value.absent(),
+    this.tasksSyncedAt = const Value.absent(),
+  });
+  static Insertable<SyncCursorRow> custom({
+    Expression<int>? id,
+    Expression<DateTime>? tasksSyncedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (tasksSyncedAt != null) 'tasks_synced_at': tasksSyncedAt,
+    });
+  }
+
+  SyncCursorsCompanion copyWith({
+    Value<int>? id,
+    Value<DateTime?>? tasksSyncedAt,
+  }) {
+    return SyncCursorsCompanion(
+      id: id ?? this.id,
+      tasksSyncedAt: tasksSyncedAt ?? this.tasksSyncedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (tasksSyncedAt.present) {
+      map['tasks_synced_at'] = Variable<DateTime>(tasksSyncedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SyncCursorsCompanion(')
+          ..write('id: $id, ')
+          ..write('tasksSyncedAt: $tasksSyncedAt')
           ..write(')'))
         .toString();
   }
@@ -1562,6 +1884,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $SettingsEntriesTable settingsEntries = $SettingsEntriesTable(
     this,
   );
+  late final $SyncCursorsTable syncCursors = $SyncCursorsTable(this);
   late final Index tasksDateIdx = Index(
     'tasks_date_idx',
     'CREATE INDEX tasks_date_idx ON tasks (date)',
@@ -1573,6 +1896,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   List<DatabaseSchemaEntity> get allSchemaEntities => [
     tasks,
     settingsEntries,
+    syncCursors,
     tasksDateIdx,
   ];
   @override
@@ -1597,6 +1921,7 @@ typedef $$TasksTableCreateCompanionBuilder = TasksCompanion Function({
   required DateTime createdAt,
   required DateTime updatedAt,
   Value<DateTime?> deletedAt,
+  Value<bool> pendingSync,
   Value<int> rowid,
 });
 typedef $$TasksTableUpdateCompanionBuilder = TasksCompanion Function({
@@ -1616,6 +1941,7 @@ typedef $$TasksTableUpdateCompanionBuilder = TasksCompanion Function({
   Value<DateTime> createdAt,
   Value<DateTime> updatedAt,
   Value<DateTime?> deletedAt,
+  Value<bool> pendingSync,
   Value<int> rowid,
 });
 
@@ -1704,6 +2030,11 @@ class $$TasksTableFilterComposer extends Composer<_$AppDatabase, $TasksTable> {
 
   ColumnFilters<DateTime> get deletedAt => $composableBuilder(
     column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get pendingSync => $composableBuilder(
+    column: $table.pendingSync,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -1796,6 +2127,11 @@ class $$TasksTableOrderingComposer
     column: $table.deletedAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<bool> get pendingSync => $composableBuilder(
+    column: $table.pendingSync,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$TasksTableAnnotationComposer
@@ -1862,6 +2198,11 @@ class $$TasksTableAnnotationComposer
 
   GeneratedColumn<DateTime> get deletedAt =>
       $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  GeneratedColumn<bool> get pendingSync => $composableBuilder(
+    column: $table.pendingSync,
+    builder: (column) => column,
+  );
 }
 
 class $$TasksTableTableManager
@@ -1908,6 +2249,7 @@ class $$TasksTableTableManager
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
+                Value<bool> pendingSync = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => TasksCompanion(
                 id: id,
@@ -1926,6 +2268,7 @@ class $$TasksTableTableManager
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 deletedAt: deletedAt,
+                pendingSync: pendingSync,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -1946,6 +2289,7 @@ class $$TasksTableTableManager
                 required DateTime createdAt,
                 required DateTime updatedAt,
                 Value<DateTime?> deletedAt = const Value.absent(),
+                Value<bool> pendingSync = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => TasksCompanion.insert(
                 id: id,
@@ -1964,6 +2308,7 @@ class $$TasksTableTableManager
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 deletedAt: deletedAt,
+                pendingSync: pendingSync,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -2009,6 +2354,7 @@ typedef $$SettingsEntriesTableCreateCompanionBuilder =
       required String themeMode,
       required DateTime updatedAt,
       Value<bool> notificationPromptShown,
+      Value<bool> pendingSync,
     });
 typedef $$SettingsEntriesTableUpdateCompanionBuilder =
     SettingsEntriesCompanion Function({
@@ -2022,6 +2368,7 @@ typedef $$SettingsEntriesTableUpdateCompanionBuilder =
       Value<String> themeMode,
       Value<DateTime> updatedAt,
       Value<bool> notificationPromptShown,
+      Value<bool> pendingSync,
     });
 
 class $$SettingsEntriesTableFilterComposer
@@ -2080,6 +2427,11 @@ class $$SettingsEntriesTableFilterComposer
 
   ColumnFilters<bool> get notificationPromptShown => $composableBuilder(
     column: $table.notificationPromptShown,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get pendingSync => $composableBuilder(
+    column: $table.pendingSync,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -2142,6 +2494,11 @@ class $$SettingsEntriesTableOrderingComposer
     column: $table.notificationPromptShown,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<bool> get pendingSync => $composableBuilder(
+    column: $table.pendingSync,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$SettingsEntriesTableAnnotationComposer
@@ -2190,6 +2547,11 @@ class $$SettingsEntriesTableAnnotationComposer
     column: $table.notificationPromptShown,
     builder: (column) => column,
   );
+
+  GeneratedColumn<bool> get pendingSync => $composableBuilder(
+    column: $table.pendingSync,
+    builder: (column) => column,
+  );
 }
 
 class $$SettingsEntriesTableTableManager
@@ -2235,6 +2597,7 @@ class $$SettingsEntriesTableTableManager
                 Value<String> themeMode = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<bool> notificationPromptShown = const Value.absent(),
+                Value<bool> pendingSync = const Value.absent(),
               }) => SettingsEntriesCompanion(
                 id: id,
                 dayStart: dayStart,
@@ -2246,6 +2609,7 @@ class $$SettingsEntriesTableTableManager
                 themeMode: themeMode,
                 updatedAt: updatedAt,
                 notificationPromptShown: notificationPromptShown,
+                pendingSync: pendingSync,
               ),
           createCompanionCallback:
               ({
@@ -2259,6 +2623,7 @@ class $$SettingsEntriesTableTableManager
                 required String themeMode,
                 required DateTime updatedAt,
                 Value<bool> notificationPromptShown = const Value.absent(),
+                Value<bool> pendingSync = const Value.absent(),
               }) => SettingsEntriesCompanion.insert(
                 id: id,
                 dayStart: dayStart,
@@ -2270,6 +2635,7 @@ class $$SettingsEntriesTableTableManager
                 themeMode: themeMode,
                 updatedAt: updatedAt,
                 notificationPromptShown: notificationPromptShown,
+                pendingSync: pendingSync,
               ),
           withReferenceMapper: (p0) => p0
               .map(
@@ -2305,6 +2671,150 @@ typedef $$SettingsEntriesTableProcessedTableManager =
       SettingsRow,
       PrefetchHooks Function()
     >;
+typedef $$SyncCursorsTableCreateCompanionBuilder =
+    SyncCursorsCompanion Function({
+      Value<int> id,
+      Value<DateTime?> tasksSyncedAt,
+    });
+typedef $$SyncCursorsTableUpdateCompanionBuilder =
+    SyncCursorsCompanion Function({
+      Value<int> id,
+      Value<DateTime?> tasksSyncedAt,
+    });
+
+class $$SyncCursorsTableFilterComposer
+    extends Composer<_$AppDatabase, $SyncCursorsTable> {
+  $$SyncCursorsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get tasksSyncedAt => $composableBuilder(
+    column: $table.tasksSyncedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$SyncCursorsTableOrderingComposer
+    extends Composer<_$AppDatabase, $SyncCursorsTable> {
+  $$SyncCursorsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get tasksSyncedAt => $composableBuilder(
+    column: $table.tasksSyncedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$SyncCursorsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $SyncCursorsTable> {
+  $$SyncCursorsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get tasksSyncedAt => $composableBuilder(
+    column: $table.tasksSyncedAt,
+    builder: (column) => column,
+  );
+}
+
+class $$SyncCursorsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $SyncCursorsTable,
+          SyncCursorRow,
+          $$SyncCursorsTableFilterComposer,
+          $$SyncCursorsTableOrderingComposer,
+          $$SyncCursorsTableAnnotationComposer,
+          $$SyncCursorsTableCreateCompanionBuilder,
+          $$SyncCursorsTableUpdateCompanionBuilder,
+          (
+            SyncCursorRow,
+            BaseReferences<_$AppDatabase, $SyncCursorsTable, SyncCursorRow>,
+          ),
+          SyncCursorRow,
+          PrefetchHooks Function()
+        > {
+  $$SyncCursorsTableTableManager(_$AppDatabase db, $SyncCursorsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$SyncCursorsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$SyncCursorsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$SyncCursorsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<DateTime?> tasksSyncedAt = const Value.absent(),
+          }) => SyncCursorsCompanion(id: id, tasksSyncedAt: tasksSyncedAt),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<DateTime?> tasksSyncedAt = const Value.absent(),
+              }) => SyncCursorsCompanion.insert(
+                id: id,
+                tasksSyncedAt: tasksSyncedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$SyncCursorsTable, SyncCursorRow>(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $SyncCursorsTable,
+                    SyncCursorRow
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$SyncCursorsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $SyncCursorsTable,
+      SyncCursorRow,
+      $$SyncCursorsTableFilterComposer,
+      $$SyncCursorsTableOrderingComposer,
+      $$SyncCursorsTableAnnotationComposer,
+      $$SyncCursorsTableCreateCompanionBuilder,
+      $$SyncCursorsTableUpdateCompanionBuilder,
+      (
+        SyncCursorRow,
+        BaseReferences<_$AppDatabase, $SyncCursorsTable, SyncCursorRow>,
+      ),
+      SyncCursorRow,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -2313,4 +2823,6 @@ class $AppDatabaseManager {
       $$TasksTableTableManager(_db, _db.tasks);
   $$SettingsEntriesTableTableManager get settingsEntries =>
       $$SettingsEntriesTableTableManager(_db, _db.settingsEntries);
+  $$SyncCursorsTableTableManager get syncCursors =>
+      $$SyncCursorsTableTableManager(_db, _db.syncCursors);
 }

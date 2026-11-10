@@ -11,6 +11,7 @@ import '../../core/time_zones.dart';
 import '../../domain/app_settings.dart';
 import '../../domain/local_time.dart';
 import '../shared/common_widgets.dart';
+import 'account_card.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -38,6 +39,7 @@ class SettingsScreen extends ConsumerWidget {
                   padding: const EdgeInsets.all(16),
                   children: [
                     if (kIsWeb) const _WebNotice(),
+                    const AccountCard(),
                     Card(
                       child: Column(
                         children: [

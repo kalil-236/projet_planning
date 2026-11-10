@@ -184,6 +184,27 @@ void main() {
                 'Africa/Porto-Novo', 5, 1, '06:00', 'dark',
                 '2026-11-09T10:00:00.000Z');
             ''');
+            raw.execute('''
+              CREATE TABLE tasks (
+                id TEXT NOT NULL PRIMARY KEY, title TEXT NOT NULL,
+                date TEXT NOT NULL, start_time TEXT NOT NULL,
+                end_time TEXT NOT NULL,
+                category_id TEXT NOT NULL DEFAULT 'autre', notes TEXT,
+                reminder_before_min INTEGER,
+                status TEXT NOT NULL DEFAULT 'todo',
+                shifted INTEGER NOT NULL DEFAULT 0,
+                original_start_time TEXT,
+                source TEXT NOT NULL DEFAULT 'manual', import_batch_id TEXT,
+                created_at TEXT NOT NULL, updated_at TEXT NOT NULL,
+                deleted_at TEXT
+              );
+            ''');
+            raw.execute('''
+              INSERT INTO tasks (id, title, date, start_time, end_time,
+                created_at, updated_at)
+              VALUES ('ancienne', 'Cours', '2026-11-10', '08:00', '10:00',
+                '2026-11-09T10:00:00.000Z', '2026-11-09T10:00:00.000Z');
+            ''');
             raw.userVersion = 1;
           },
         ),
@@ -195,6 +216,11 @@ void main() {
 
     expect((await repository.current()).dayStart, const LocalTime(6, 30));
     expect(await repository.notificationPromptShown(), isFalse);
+    expect(
+      (await TaskRepository(legacy).pendingSync()).single.id,
+      'ancienne',
+      reason: 'les tâches existantes doivent partir au premier envoi',
+    );
   });
 
   test(
