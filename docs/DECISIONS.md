@@ -59,3 +59,7 @@ Choix techniques non couverts par `SPEC_assistant_planning.md`.
 | Toucher une notification | Ouvre l'application sur son écran courant. | Non précisé. Les actions sont prévues en phase 4 (10.6). |
 | Icône de notification | Icône Lucide `bell` en vecteur Android. | L'icône doit être monochrome et rester Lucide (8.3). |
 | Mémoire Gradle | 4 Go au lieu de 8. | La machine de développement a 7,7 Go de RAM : 8 Go faisaient planter la compilation. |
+| Icône de l'application | Image fournie (`assets/branding/icone.jpg`), générée avec `flutter_launcher_icons` pour Android et le web. Marge de 16 % sur l'icône adaptative, fond #0A0B0D identique à celui de l'image. | Demande explicite. La marge garde le dessin entier dans la zone visible des masques Android. |
+| Messages d'encouragement | Corps des rappels : phrase humoristique, puis l'horaire à la ligne. Le titre garde le texte de 10.1. Le titre du résumé varie, son corps reste celui de 10.3. | Demande explicite. Un titre factuel reste lisible quand Android le tronque. |
+| Choix du message | Déterminé par un hachage de la tâche et du type de rappel, pas au hasard. | Un rappel garde son texte quand il est reprogrammé, et le calcul reste testable. |
+| Forme d'adresse | « Monsieur » et « Agent », écrits en dur, sans réglage. | Formulation demandée. |

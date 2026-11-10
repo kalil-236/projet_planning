@@ -5,6 +5,7 @@ import '../core/french_format.dart';
 import '../core/time_zones.dart';
 import 'app_settings.dart';
 import 'local_date.dart';
+import 'notification_messages.dart';
 import 'task.dart';
 
 const notificationWindowDays = 7;
@@ -136,21 +137,24 @@ int _bySchedule(_Draft a, _Draft b) {
 Iterable<_Draft> _draftsForTask(Task task, AppSettings settings) sync* {
   final start = toInstant(task.date, task.start, settings.timezone);
   final schedule = formatTimeRange(task.start, task.end);
+  final startKey = '${task.id}|start';
   yield _Draft(
-    key: '${task.id}|start',
+    key: startKey,
     kind: NotificationKind.start,
     instant: start,
     title: "C'est l'heure : ${task.title}",
-    body: schedule,
+    body: '${startReminderMessage(task.title, startKey)}\n$schedule',
   );
   final before = task.reminderBeforeMin ?? settings.defaultReminderMin;
   if (before > 0) {
+    final delay = _formatDelay(before);
+    final preKey = '${task.id}|pre';
     yield _Draft(
-      key: '${task.id}|pre',
+      key: preKey,
       kind: NotificationKind.preReminder,
       instant: start.subtract(Duration(minutes: before)),
-      title: 'Dans ${_formatDelay(before)} : ${task.title}',
-      body: schedule,
+      title: 'Dans $delay : ${task.title}',
+      body: '${preReminderMessage(task.title, delay, preKey)}\n$schedule',
     );
   }
 }
@@ -162,11 +166,12 @@ _Draft _summaryDraft(
 ) {
   final dayTasks = tasks.where((task) => task.date == date).toList()
     ..sort((a, b) => a.start.compareTo(b.start));
+  final key = 'summary|$date';
   return _Draft(
-    key: 'summary|$date',
+    key: key,
     kind: NotificationKind.morningSummary,
     instant: toInstant(date, settings.morningSummaryTime, settings.timezone),
-    title: 'Résumé du matin',
+    title: morningSummaryTitle(key),
     body: morningSummaryBody(dayTasks),
   );
 }
@@ -179,15 +184,9 @@ String _formatDelay(int minutes) {
   return rest == 0 ? '$hours h' : '$hours h $rest';
 }
 
-/// FNV-1a sur 31 bits : `String.hashCode` varie d'une exécution à l'autre.
 int _uniqueId(String key, Set<int> used) {
-  const offsetBasis = 0x811c9dc5;
-  const prime = 0x01000193;
   const mask = 0x7fffffff;
-  var hash = offsetBasis;
-  for (final unit in key.codeUnits) {
-    hash = ((hash ^ unit) * prime) & mask;
-  }
+  var hash = stableHash(key);
   while (!used.add(hash)) {
     hash = (hash + 1) & mask;
   }

@@ -36,7 +36,8 @@ void main() {
 
       final start = plan.singleWhere((n) => n.kind == NotificationKind.start);
       expect(start.title, "C'est l'heure : Cours");
-      expect(start.body, '08:00 – 10:00');
+      expect(start.body, contains('Cours'));
+      expect(start.body, endsWith('\n08:00 – 10:00'));
       expect(start.instant, _porto(tuesday, 8));
     });
 
@@ -48,6 +49,8 @@ void main() {
       );
       expect(pre.instant, _porto(tuesday, 7, 50));
       expect(pre.title, 'Dans 10 min : Cours');
+      expect(pre.body, contains('Cours'));
+      expect(pre.body, endsWith('\n08:00 – 10:00'));
     });
 
     test('le délai de la tâche prime sur celui des réglages', () {
