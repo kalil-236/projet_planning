@@ -22,6 +22,7 @@ import '../shared/timeline_layout.dart';
 import '../shared/timeline_widgets.dart';
 import '../task_editor/task_detail.dart';
 import '../task_editor/task_editor.dart';
+import 'quick_add_bar.dart';
 
 class TodayScreen extends ConsumerWidget {
   const TodayScreen({super.key});
@@ -122,6 +123,8 @@ class _TodayBodyState extends ConsumerState<_TodayBody> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(formatFullDate(now.date), style: text.titleMedium),
+              const SizedBox(height: 8),
+              const QuickAddBar(),
               if (tasks.isNotEmpty) ...[
                 const SizedBox(height: 4),
                 Text(
