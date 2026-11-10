@@ -14,6 +14,7 @@ import '../../domain/local_date.dart';
 import '../../domain/local_time.dart';
 import '../../domain/task.dart';
 import '../shared/common_widgets.dart';
+import '../shared/swipe_actions.dart';
 import '../shared/timeline_layout.dart';
 import '../shared/timeline_widgets.dart';
 import '../task_editor/task_detail.dart';
@@ -267,10 +268,13 @@ class _DayList extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       itemCount: tasks.length,
       separatorBuilder: (_, _) => const SizedBox(height: 8),
-      itemBuilder: (_, index) => TaskListTile(
+      itemBuilder: (_, index) => SwipeableTask(
         task: tasks[index],
-        conflict: conflicts.contains(tasks[index].id),
-        onTap: () => onTaskTap(tasks[index]),
+        child: TaskListTile(
+          task: tasks[index],
+          conflict: conflicts.contains(tasks[index].id),
+          onTap: () => onTaskTap(tasks[index]),
+        ),
       ),
     );
   }

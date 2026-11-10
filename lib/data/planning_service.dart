@@ -99,6 +99,9 @@ class PlanningService {
   Future<void> setStatus(Task task, TaskStatus status) =>
       _save(task.copyWith(status: status));
 
+  /// Remet une tâche dans l'état [snapshot] : « Annuler » après un geste.
+  Future<void> restore(Task snapshot) => _save(snapshot);
+
   /// Renvoie `false` si la tâche traverserait minuit.
   Future<bool> shiftBy(Task task, int minutes) =>
       _saveShift(shiftTaskBy(task, minutes, _clock.nowUtc()));

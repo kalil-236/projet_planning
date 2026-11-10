@@ -6,6 +6,7 @@ import '../../core/french_format.dart';
 import '../../domain/day_gaps.dart';
 import '../../domain/local_time.dart';
 import '../../domain/task.dart';
+import 'swipe_actions.dart';
 import 'task_visuals.dart';
 import 'timeline_layout.dart';
 
@@ -118,10 +119,13 @@ class TimelineColumn extends StatelessWidget {
                   height: item.height,
                   left: item.column * width / item.columnCount + 2,
                   width: width / item.columnCount - 4,
-                  child: TaskBlock(
+                  child: SwipeableTask(
                     task: item.task,
-                    conflict: conflictIds.contains(item.task.id),
-                    onTap: () => onTaskTap(item.task),
+                    child: TaskBlock(
+                      task: item.task,
+                      conflict: conflictIds.contains(item.task.id),
+                      onTap: () => onTaskTap(item.task),
+                    ),
                   ),
                 ),
               if (current != null && scale.contains(current))
@@ -224,8 +228,11 @@ class TaskBlock extends StatelessWidget {
       ),
     );
 
-    return Opacity(
+    return AnimatedOpacity(
       opacity: inactive ? _inactiveOpacity : 1,
+      duration: MediaQuery.disableAnimationsOf(context)
+          ? Duration.zero
+          : const Duration(milliseconds: 250),
       child: Material(
         color: Color.alphaBlend(
           color.withValues(alpha: _tintOpacity),
