@@ -38,3 +38,4 @@ Choix techniques non couverts par `SPEC_assistant_planning.md`.
 | Semaine en largeur intermédiaire | Trois jours à partir du jour choisi, sans sortir de la semaine. | La spécification ne précise pas lesquels. |
 | Blocs de la frise | Pas de badge pour l'état « À faire », qui est l'état normal. Il reste affiché dans les listes et le détail. | Évite de surcharger des blocs étroits. |
 | Illustrations | Grande icône Lucide avec `TODO(illustration)`. | Prévues en phase 4 (14). |
+| Compilation Kotlin | `kotlin.incremental=false` dans `android/gradle.properties`. | La compilation incrémentale échoue sous Windows quand les plugins (C:) et le projet (E:) sont sur des lecteurs différents. |
