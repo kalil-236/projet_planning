@@ -2,6 +2,7 @@ import 'package:assistant_planning/core/time_zones.dart';
 import 'package:assistant_planning/domain/app_settings.dart';
 import 'package:assistant_planning/domain/local_date.dart';
 import 'package:assistant_planning/domain/local_time.dart';
+import 'package:assistant_planning/domain/notification_messages.dart';
 import 'package:assistant_planning/domain/notification_plan.dart';
 import 'package:assistant_planning/domain/task.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -204,7 +205,10 @@ void main() {
     });
 
     test('jour sans tâche', () {
-      expect(summaries(const []).first.body, "Rien de prévu aujourd'hui");
+      expect(
+        morningBriefingEmptyMessages,
+        contains(summaries(const []).first.body),
+      );
     });
 
     test('liste les tâches du jour dans l\'ordre chronologique', () {
@@ -214,7 +218,16 @@ void main() {
         makeTask(id: 'm', title: 'Marché', date: wednesday),
       ]);
 
-      expect(plan.first.body, "Aujourd'hui : Cours à 8h30, Sport à 17h");
+      expect(plan.first.body, contains('2 points'));
+      expect(plan.first.body, contains('Cours à 8h30, Sport à 17h.'));
+      expect(plan.first.body, isNot(contains('Marché')));
+    });
+
+    test('le briefing se termine par une phrase de conclusion', () {
+      final body = morningSummaryBody([makeTask(title: 'Cours')], key: 'k');
+
+      expect(body, contains('un point'));
+      expect(morningBriefingClosings.any(body.endsWith), isTrue);
     });
 
     test('exclut les tâches annulées, faites et passées', () {
@@ -224,7 +237,7 @@ void main() {
         makeTask(id: 'p', title: 'Passée', status: TaskStatus.missed),
       ]);
 
-      expect(plan.first.body, "Rien de prévu aujourd'hui");
+      expect(morningBriefingEmptyMessages, contains(plan.first.body));
     });
 
     test('le résumé déjà passé n\'est pas programmé', () {

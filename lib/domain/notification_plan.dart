@@ -87,14 +87,14 @@ PlannedNotification testNotification(DateTime nowUtc) => PlannedNotification(
   body: 'Les rappels fonctionnent sur ce téléphone.',
 );
 
-/// Texte du résumé d'un jour. Les tâches doivent être triées par heure.
-String morningSummaryBody(List<Task> dayTasks) {
-  if (dayTasks.isEmpty) return "Rien de prévu aujourd'hui";
-  const prefix = "Aujourd'hui : ";
+/// Briefing d'un jour. Les tâches doivent être triées par heure.
+String morningSummaryBody(List<Task> dayTasks, {String key = ''}) {
+  if (dayTasks.isEmpty) return morningBriefingEmpty(key);
+  final prefix = morningBriefingOpening(dayTasks.length, key);
   final items = [
     for (final task in dayTasks) '${task.title} à ${formatHour(task.start)}',
   ];
-  final full = prefix + items.join(', ');
+  final full = '$prefix${items.join(', ')}.${morningBriefingClosing(key)}';
   if (full.length <= _summaryMaxLength) return full;
 
   final limit = _summaryMaxLength - _ellipsis.length;
@@ -172,7 +172,7 @@ _Draft _summaryDraft(
     kind: NotificationKind.morningSummary,
     instant: toInstant(date, settings.morningSummaryTime, settings.timezone),
     title: morningSummaryTitle(key),
-    body: morningSummaryBody(dayTasks),
+    body: morningSummaryBody(dayTasks, key: key),
   );
 }
 

@@ -42,12 +42,47 @@ List<String> preReminderMessages(String title, String delay) => [
 ];
 
 const morningSummaryTitles = [
-  'Bonjour monsieur, voici votre programme',
-  "Votre mission du jour, si vous l'acceptez",
-  'Bien dormi, monsieur ? Voici la suite',
-  'Nouvelle journée, nouvelles victoires',
-  'Debout, agent : voici vos ordres du jour',
+  'Briefing du matin, monsieur',
+  'Bonjour monsieur',
+  'Votre briefing du jour',
+  'Rapport matinal, monsieur',
+  'F.R.I.D.A.Y : briefing du jour',
 ];
+
+const morningBriefingEmptyMessages = [
+  "Rien de prévu aujourd'hui, monsieur. Je reste en veille.",
+  "Agenda vierge aujourd'hui, monsieur. Une journée sans crise, ce serait une première.",
+  "Aucun engagement aujourd'hui, monsieur. Je vous suggère d'en profiter.",
+];
+
+const morningBriefingClosings = [
+  ' Je surveille le reste, monsieur.',
+  ' Je vous préviendrai en temps voulu.',
+  ' Essayez de ne rien faire exploser, monsieur.',
+  ' Bonne journée, monsieur.',
+];
+
+List<String> morningBriefingOpenings(int taskCount) {
+  final points = taskCount == 1 ? 'un point' : '$taskCount points';
+  return [
+    "Bonjour monsieur. Tous les systèmes sont opérationnels, $points à l'agenda aujourd'hui : ",
+    'Bonjour monsieur. Voici votre briefing, $points au programme : ',
+    "Bonjour monsieur. J'ai analysé votre journée, il y a $points à traiter : ",
+    'Réveil confirmé, monsieur. Votre journée compte $points : ',
+  ];
+}
+
+String morningBriefingEmpty(String key) =>
+    _pick(morningBriefingEmptyMessages, key);
+
+String morningBriefingOpening(int taskCount, String key) =>
+    _pick(morningBriefingOpenings(taskCount), '$key|ouverture');
+
+String morningBriefingClosing(String key) =>
+    _pick(morningBriefingClosings, '$key|fin');
+
+String _pick(List<String> messages, String key) =>
+    messages[stableHash(key) % messages.length];
 
 /// FNV-1a sur 31 bits : `String.hashCode` varie d'une exécution à l'autre.
 int stableHash(String key) {

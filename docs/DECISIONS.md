@@ -63,6 +63,8 @@ Choix techniques non couverts par `SPEC_assistant_planning.md`.
 | Messages d'encouragement | Corps des rappels : phrase humoristique, puis l'horaire à la ligne. Le titre garde le texte de 10.1. Le titre du résumé varie, son corps reste celui de 10.3. | Demande explicite. Un titre factuel reste lisible quand Android le tronque. |
 | Choix du message | Déterminé par un hachage de la tâche et du type de rappel, pas au hasard. | Un rappel garde son texte quand il est reprogrammé, et le calcul reste testable. |
 | Forme d'adresse | « Monsieur » et « Agent », écrits en dur, sans réglage. | Formulation demandée. |
+| Nom de l'application | F.R.I.D.A.Y sur Android et le web. Le nom technique du paquet ne change pas. | Demande explicite. Changer l'identifiant Android empêcherait la mise à jour de l'appli installée. |
+| Résumé du matin | Briefing à la manière d'un assistant : ouverture, liste des tâches, conclusion. Remplace le texte de 10.1 et 10.3. La conclusion disparaît si le texte dépasse 300 caractères. | Demande explicite. |
 
 ## Phase 3
 

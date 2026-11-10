@@ -13,6 +13,10 @@ void main() {
     ...startReminderMessages(title),
     ...preReminderMessages(title, '10 min'),
     ...morningSummaryTitles,
+    ...morningBriefingEmptyMessages,
+    ...morningBriefingClosings,
+    ...morningBriefingOpenings(1),
+    ...morningBriefingOpenings(3),
   ];
 
   test('tout message de tâche nomme la tâche', () {
