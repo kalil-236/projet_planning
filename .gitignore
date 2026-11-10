@@ -54,6 +54,7 @@ app.*.map.json
 *.jks
 *.keystore
 key.properties
+env.json
 
 # Rapports Gradle
 /android/build/

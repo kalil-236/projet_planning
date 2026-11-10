@@ -10,6 +10,37 @@ flutter run -d chrome     # web
 flutter run -d <appareil> # téléphone Android ou émulateur
 ```
 
+Sans configuration Supabase, l'application fonctionne en local, sans compte ni synchronisation.
+
+## Configurer Supabase
+
+1. Créez un projet gratuit sur [supabase.com](https://supabase.com).
+2. Dans **SQL Editor**, exécutez le contenu de [supabase/schema.sql](supabase/schema.sql).
+3. Dans **Authentication > Users**, créez votre compte avec **Add user**, en cochant la confirmation automatique.
+4. Dans les réglages **Authentication** de connexion, désactivez **Allow new users to sign up**.
+5. Dans **Project Settings > API**, relevez l'URL du projet et la clé `anon` (ou `publishable`). N'utilisez jamais la clé `service_role`.
+6. Copiez `env.example.json` vers `env.json` et renseignez ces deux valeurs. Ce fichier est ignoré par Git.
+
+```powershell
+flutter run -d chrome --dart-define-from-file=env.json
+```
+
+## Générer l'APK
+
+```powershell
+flutter build apk --release --split-per-abi --dart-define-from-file=env.json
+```
+
+Pour un téléphone récent, installez `build\app\outputs\flutter-apk\app-arm64-v8a-release.apk`.
+
+## Déployer le web
+
+Le déploiement sur GitHub Pages se fait à chaque envoi sur `main`, une fois ces réglages faits sur le dépôt GitHub :
+
+1. **Settings > Pages** : choisissez **GitHub Actions** comme source.
+2. **Settings > Secrets and variables > Actions > Variables** : créez `SUPABASE_URL` et `SUPABASE_ANON_KEY`.
+3. **Actions > Déployer le web > Run workflow** lance le premier déploiement.
+
 ## Vérifier le code
 
 ```powershell

@@ -63,3 +63,21 @@ Choix techniques non couverts par `SPEC_assistant_planning.md`.
 | Messages d'encouragement | Corps des rappels : phrase humoristique, puis l'horaire à la ligne. Le titre garde le texte de 10.1. Le titre du résumé varie, son corps reste celui de 10.3. | Demande explicite. Un titre factuel reste lisible quand Android le tronque. |
 | Choix du message | Déterminé par un hachage de la tâche et du type de rappel, pas au hasard. | Un rappel garde son texte quand il est reprogrammé, et le calcul reste testable. |
 | Forme d'adresse | « Monsieur » et « Agent », écrits en dur, sans réglage. | Formulation demandée. |
+
+## Phase 3
+
+| Sujet | Décision | Raison |
+|---|---|---|
+| Colonne `synced_at` | Ajoutée à `tasks` et `settings`, écrite par un déclencheur serveur. La lecture incrémentale l'utilise au lieu de `updated_at`. | Une modification faite hors ligne garde un `updated_at` ancien : avec lui, l'autre appareil ne la verrait jamais. |
+| Le plus récent gagne | Vérifié sur le serveur par un déclencheur, et à la réception sur chaque appareil. | Deux appareils qui écrivent en même temps ne peuvent pas écraser une version plus récente. |
+| File d'attente hors ligne | Colonne locale `pending_sync` sur chaque ligne. La marque n'est retirée que si la ligne n'a pas changé pendant l'envoi. | Rien n'est perdu après un arrêt de l'appli, sans table de journal à maintenir. |
+| Données existantes | Marquées à envoyer par la migration. | Les tâches déjà sur le téléphone partent au premier envoi. |
+| Relecture | La lecture reprend 5 minutes avant la dernière position. | Deux transactions serveur peuvent se terminer dans le désordre. Appliquer deux fois la même ligne est sans effet. |
+| Temps réel | Un événement déclenche une synchronisation, son contenu n'est pas lu. | Un seul chemin d'écriture, et les événements manqués sont rattrapés. |
+| Connexion | Obligatoire sur le web. Facultative sur Android, depuis Réglages. | Sur le téléphone, l'absence de compte ou de réseau ne doit jamais bloquer les rappels (1, 11.1). |
+| Déconnexion | Conserve les données locales. | Un seul compte existe. Les écritures en attente partiront à la prochaine connexion. |
+| Sans configuration | Sans `SUPABASE_URL` et `SUPABASE_ANON_KEY`, l'application reste locale, sans écran de compte. | Une erreur de configuration ne doit pas empêcher les rappels. |
+| Configuration | `--dart-define-from-file=env.json`, fichier ignoré par Git. `flutter_dotenv` non installé. | `flutter_dotenv` embarquerait un fichier dans les assets. Les deux options sont prévues en section 4. |
+| Clé Supabase | Passée à `publishableKey`, sous le nom `SUPABASE_ANON_KEY`. | `anonKey` est dépréciée dans `supabase_flutter`. |
+| Table `categories` | Créée (7.3) mais pas synchronisée. | La v1 utilise une liste fixe dans le code. |
+| Hébergement web | GitHub Pages, déployé par GitHub Actions. | Gratuit, sans compte de plus. L'URL et la clé `anon` restent hors du dépôt, en variables GitHub. |
