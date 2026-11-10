@@ -3,6 +3,7 @@ import 'package:permission_handler/permission_handler.dart';
 
 import '../core/time_zones.dart';
 import '../domain/notification_plan.dart';
+import 'notification_actions.dart';
 
 /// Accès au système de notifications, isolé pour les tests.
 abstract interface class NotificationGateway {
@@ -40,6 +41,12 @@ class AndroidNotificationGateway implements NotificationGateway {
   static const _summaryChannelId = 'resume';
   static const _summaryChannelName = 'Résumé du matin';
 
+  /// Sans interface : la tâche est modifiée sans ouvrir l'application.
+  static const _taskActions = [
+    AndroidNotificationAction(doneActionId, 'Fait'),
+    AndroidNotificationAction(shiftActionId, 'Décaler $shiftActionMinutes min'),
+  ];
+
   final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
 
@@ -55,6 +62,8 @@ class AndroidNotificationGateway implements NotificationGateway {
       settings: const InitializationSettings(
         android: AndroidInitializationSettings(_smallIcon),
       ),
+      onDidReceiveNotificationResponse: onNotificationResponse,
+      onDidReceiveBackgroundNotificationResponse: onNotificationResponse,
     );
     await _android.createNotificationChannel(
       const AndroidNotificationChannel(
@@ -127,6 +136,7 @@ class AndroidNotificationGateway implements NotificationGateway {
       title: notification.title,
       body: notification.body,
       scheduledDate: toZoned(notification.instant, timezone),
+      payload: notification.taskId,
       notificationDetails: NotificationDetails(
         android: _detailsFor(notification),
       ),
@@ -151,6 +161,7 @@ class AndroidNotificationGateway implements NotificationGateway {
       importance: Importance.high,
       priority: Priority.high,
       styleInformation: style,
+      actions: notification.taskId == null ? null : _taskActions,
     );
   }
 }

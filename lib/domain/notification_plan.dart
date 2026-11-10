@@ -27,10 +27,14 @@ class PlannedNotification {
     required this.instant,
     required this.title,
     required this.body,
+    this.taskId,
   });
 
   final int id;
   final NotificationKind kind;
+
+  /// Tâche visée par un rappel : ses boutons agissent sur elle (10.6).
+  final String? taskId;
 
   /// Instant absolu en UTC.
   final DateTime instant;
@@ -75,6 +79,7 @@ List<PlannedNotification> planNotifications({
         instant: draft.instant,
         title: draft.title,
         body: draft.body,
+        taskId: draft.taskId,
       ),
   ];
 }
@@ -119,6 +124,7 @@ class _Draft {
     required this.instant,
     required this.title,
     required this.body,
+    this.taskId,
   });
 
   /// Identité stable d'une notification d'une programmation à l'autre.
@@ -127,6 +133,7 @@ class _Draft {
   final DateTime instant;
   final String title;
   final String body;
+  final String? taskId;
 }
 
 int _bySchedule(_Draft a, _Draft b) {
@@ -144,6 +151,7 @@ Iterable<_Draft> _draftsForTask(Task task, AppSettings settings) sync* {
     instant: start,
     title: "C'est l'heure : ${task.title}",
     body: '${startReminderMessage(task.title, startKey)}\n$schedule',
+    taskId: task.id,
   );
   final before = task.reminderBeforeMin ?? settings.defaultReminderMin;
   if (before > 0) {
@@ -155,6 +163,7 @@ Iterable<_Draft> _draftsForTask(Task task, AppSettings settings) sync* {
       instant: start.subtract(Duration(minutes: before)),
       title: 'Dans $delay : ${task.title}',
       body: '${preReminderMessage(task.title, delay, preKey)}\n$schedule',
+      taskId: task.id,
     );
   }
 }

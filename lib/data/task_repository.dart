@@ -39,6 +39,13 @@ class TaskRepository {
     );
   }
 
+  Future<Task?> byId(String id) async {
+    final query = _db.select(_db.tasks)
+      ..where((t) => t.id.equals(id) & t.deletedAt.isNull());
+    final row = await query.getSingleOrNull();
+    return row == null ? null : _toTask(row);
+  }
+
   Future<void> upsert(Task task) =>
       _db.into(_db.tasks).insertOnConflictUpdate(_toCompanion(task));
 

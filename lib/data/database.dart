@@ -88,8 +88,11 @@ class AppDatabase extends _$AppDatabase {
   );
 }
 
+/// Base partagée entre isolats : les boutons des notifications écrivent depuis
+/// un moteur Flutter séparé, et l'application ouverte voit leurs changements.
 QueryExecutor openAppDatabase() => driftDatabase(
   name: 'planning',
+  native: const DriftNativeOptions(shareAcrossIsolates: true),
   web: DriftWebOptions(
     sqlite3Wasm: Uri.parse('sqlite3.wasm'),
     driftWorker: Uri.parse('drift_worker.js'),
