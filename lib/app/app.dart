@@ -17,7 +17,7 @@ class AssistantPlanningApp extends ConsumerWidget {
     ref.watch(reminderLifecycleProvider);
     ref.watch(syncLifecycleProvider);
     return MaterialApp.router(
-      title: 'Assistant de planification',
+      title: 'F.R.I.D.A.Y',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,

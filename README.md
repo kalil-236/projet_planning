@@ -1,4 +1,4 @@
-# Assistant de planification
+# F.R.I.D.A.Y
 
 Application Flutter personnelle (Android et web), en français, qui importe un planning hebdomadaire, l'affiche et envoie des rappels. La référence complète est [SPEC_assistant_planning.md](SPEC_assistant_planning.md).
 
