@@ -3,6 +3,8 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../domain/app_settings.dart';
+import '../platform/shared_plan.dart';
+import 'destinations.dart';
 import 'in_app_reminders.dart';
 import 'keyboard_shortcuts.dart';
 import 'providers.dart';
@@ -20,6 +22,10 @@ class AssistantPlanningApp extends ConsumerWidget {
     ref.watch(syncLifecycleProvider);
     ref.watch(inAppRemindersProvider);
     final router = ref.watch(routerProvider);
+    // Fichier ouvert ou partagé depuis une autre application : aperçu d'import.
+    ref.listen(pendingSharedPlanProvider, (_, next) {
+      if (next != null) router.go(AppDestination.importPlan.path);
+    });
     return MaterialApp.router(
       title: 'F.R.I.D.A.Y',
       scaffoldMessengerKey: rootMessengerKey,

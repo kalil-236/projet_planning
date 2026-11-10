@@ -33,6 +33,21 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+            <!-- Planning partagé depuis une autre application (fichier ou texte). -->
+            <intent-filter android:label="Importer dans F.R.I.D.A.Y">
+                <action android:name="android.intent.action.SEND"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="application/json"/>
+                <data android:mimeType="application/octet-stream"/>
+                <data android:mimeType="text/plain"/>
+            </intent-filter>
+            <!-- Fichier .json ouvert depuis Fichiers, Drive ou un téléchargement. -->
+            <intent-filter android:label="Importer dans F.R.I.D.A.Y">
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:scheme="content"/>
+                <data android:mimeType="application/json"/>
+            </intent-filter>
         </activity>
         <receiver
             android:exported="false"

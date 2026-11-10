@@ -204,7 +204,11 @@ class _ImportPreviewPanelState extends ConsumerState<ImportPreviewPanel> {
                     ? null
                     : _import,
                 icon: const Icon(LucideIcons.fileUp),
-                label: Text('Importer ${preview.importableCount} tâches'),
+                label: Text(
+                  preview.importableCount == 1
+                      ? 'Importer 1 tâche'
+                      : 'Importer ${preview.importableCount} tâches',
+                ),
               ),
             ),
           ],

@@ -102,3 +102,12 @@ Choix techniques non couverts par `SPEC_assistant_planning.md`.
 | Rappel dans l'onglet web | Bandeau « C'est l'heure : {titre} » au début de chaque tâche à faire, pendant 15 secondes, quel que soit l'écran. Pas de pré-rappel. | 10.7 ne cite que ce texte. Un seul bandeau par tâche et par horaire, même si l'écran est reconstruit. |
 | Mouvement réduit | Si le système demande moins d'animations, les changements d'écran se font sans transition. | 8.5. Les autres animations du framework sont brèves. |
 | Mode sombre des illustrations | Couleurs remplacées à l'affichage : bleu vers `primary`, gris vers `foreground`, `surface`, `muted` ou `border`, teintes chaudes inchangées. | Les gris d'origine sont illisibles sur fond sombre. Le classement se fait par teinte et luminosité, sans couleur écrite dans le code. |
+
+## Phase 5 : améliorations validées après la phase 4
+
+Les idées 1, 2, 3, 4, 5, 6, 7, 10, 13, 15 et 20 de la liste de propositions ont été validées par l'utilisateur. L'idée 20 (lecture vocale) lève explicitement l'interdiction des sections 1 et 2.
+
+| Sujet | Décision | Raison |
+|---|---|---|
+| Planning collé | Bouton « Coller le planning » dans Importer. Le texte peut entourer le JSON d'un bloc de code ou d'une phrase : le premier objet `{ … }` est lu, puis validé comme un fichier. | La réponse du chat contient souvent un bloc de code et une phrase d'introduction. |
+| Partage vers l'application | Android : « Partager » (fichier JSON, fichier inconnu ou texte) et « Ouvrir avec » (fichier JSON) ouvrent Importer avec l'aperçu. Lecture native dans `MainActivity`, limitée à 1 Mo, sans paquet supplémentaire. | Le canal natif fait une quarantaine de lignes ; un paquet de partage aurait ajouté une dépendance pour peu de chose. Le contenu est toujours validé avant import. |

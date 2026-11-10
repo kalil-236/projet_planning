@@ -6,6 +6,7 @@ import 'package:assistant_planning/core/french_format.dart';
 import 'package:assistant_planning/core/time_zones.dart';
 import 'package:assistant_planning/data/database.dart';
 import 'package:assistant_planning/notifications/notification_gateway.dart';
+import 'package:assistant_planning/platform/shared_plan.dart';
 import 'package:assistant_planning/sync/sync_backend.dart';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
@@ -35,6 +36,7 @@ Future<AppDatabase> pumpApp(
   SyncBackend? syncBackend,
   bool loginRequired = false,
   bool inAppReminders = false,
+  SharedPlanSource? sharedPlanSource,
 }) async {
   tester.view.physicalSize = Size(width, height);
   tester.view.devicePixelRatio = 1;
@@ -50,6 +52,7 @@ Future<AppDatabase> pumpApp(
         syncBackendProvider.overrideWithValue(syncBackend),
         loginRequiredProvider.overrideWithValue(loginRequired),
         inAppRemindersEnabledProvider.overrideWithValue(inAppReminders),
+        sharedPlanSourceProvider.overrideWithValue(sharedPlanSource),
       ],
       child: const AssistantPlanningApp(),
     ),

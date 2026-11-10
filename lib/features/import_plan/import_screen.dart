@@ -14,6 +14,7 @@ import '../../app/providers.dart';
 import '../../app/theme/app_colors.dart';
 import '../../domain/plan_parser.dart';
 import '../../domain/plan_prompt.dart';
+import '../../platform/shared_plan.dart';
 import '../shared/common_widgets.dart';
 import 'import_preview_panel.dart';
 
@@ -31,6 +32,59 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
   String? _fileName;
   String? _error;
   bool _dragging = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _takeShared());
+  }
+
+  /// Planning ouvert ou partagé depuis une autre application.
+  void _takeShared() {
+    if (!mounted) return;
+    final shared = ref.read(pendingSharedPlanProvider.notifier).take();
+    if (shared == null) return;
+    final text = shared.text;
+    if (text == null) {
+      setState(() {
+        _fileName = shared.name;
+        _plan = null;
+        _error = 'Impossible de lire le fichier : ${shared.error}';
+      });
+      return;
+    }
+    _loadText(shared.name, text);
+  }
+
+  Future<void> _paste() async {
+    final data = await Clipboard.getData(Clipboard.kTextPlain);
+    final text = data?.text?.trim() ?? '';
+    if (!mounted) return;
+    if (text.isEmpty) {
+      setState(() {
+        _fileName = null;
+        _plan = null;
+        _error =
+            'Le presse-papiers est vide. Copiez la réponse de Claude, '
+            'puis réessayez.';
+      });
+      return;
+    }
+    _loadText('Texte collé', text);
+  }
+
+  void _loadText(String name, String text) {
+    setState(() {
+      _fileName = name;
+      try {
+        _plan = parsePastedPlan(text);
+        _error = null;
+      } on ImportRejected catch (rejected) {
+        _plan = null;
+        _error = rejected.message;
+      }
+    });
+  }
 
   Future<void> _copyPrompt() async {
     final messenger = ScaffoldMessenger.of(context);
@@ -84,12 +138,16 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(pendingSharedPlanProvider, (_, next) {
+      if (next != null) _takeShared();
+    });
     final plan = _plan;
     final picker = _FilePickerCard(
       fileName: _fileName,
       error: _error,
       dragging: _dragging,
       onPick: _pickFile,
+      onPaste: _paste,
     );
     return Scaffold(
       appBar: AppBar(title: Text(AppDestination.importPlan.label)),
@@ -148,12 +206,14 @@ class _FilePickerCard extends StatelessWidget {
     required this.error,
     required this.dragging,
     required this.onPick,
+    required this.onPaste,
   });
 
   final String? fileName;
   final String? error;
   final bool dragging;
   final VoidCallback onPick;
+  final VoidCallback onPaste;
 
   @override
   Widget build(BuildContext context) {
@@ -165,10 +225,27 @@ class _FilePickerCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            FilledButton.icon(
-              onPressed: onPick,
-              icon: const Icon(LucideIcons.fileUp),
-              label: const Text('Choisir un fichier .json'),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                FilledButton.icon(
+                  onPressed: onPaste,
+                  icon: const Icon(LucideIcons.clipboardPaste),
+                  label: const Text('Coller le planning'),
+                ),
+                OutlinedButton.icon(
+                  onPressed: onPick,
+                  icon: const Icon(LucideIcons.fileUp),
+                  label: const Text('Choisir un fichier .json'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Copiez la réponse de Claude, puis touchez « Coller le '
+              'planning ».',
+              style: TextStyle(color: colors.mutedForeground),
             ),
             if (kIsWeb) ...[
               const SizedBox(height: 8),

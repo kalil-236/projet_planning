@@ -76,6 +76,25 @@ class ParsedPlan {
 const _maxTitleLength = 120;
 const _supportedSchemaVersion = 1;
 
+final _codeFence = RegExp(r'```(?:json)?\s*\n([\s\S]*?)\n?```');
+
+/// Planning collé ou partagé depuis le chat : la réponse peut entourer le JSON
+/// d'un bloc de code ou d'une phrase. Le premier objet trouvé est lu.
+ParsedPlan parsePastedPlan(String pasted) {
+  final text = pasted.trim();
+  if (text.startsWith('{')) return parsePlanJson(text);
+  final fenced = _codeFence.firstMatch(text);
+  if (fenced != null) return parsePlanJson(fenced.group(1)!.trim());
+  final start = text.indexOf('{');
+  final end = text.lastIndexOf('}');
+  if (start < 0 || end <= start) {
+    throw const ImportRejected(
+      'Le texte ne contient pas de planning au format JSON.',
+    );
+  }
+  return parsePlanJson(text.substring(start, end + 1));
+}
+
 ParsedPlan parsePlanJson(String source) {
   final text = source.startsWith('﻿') ? source.substring(1) : source;
   final Object? root;
