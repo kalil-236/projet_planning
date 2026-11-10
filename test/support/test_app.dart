@@ -1,4 +1,5 @@
 import 'package:assistant_planning/app/app.dart';
+import 'package:assistant_planning/app/in_app_reminders.dart';
 import 'package:assistant_planning/app/providers.dart';
 import 'package:assistant_planning/core/clock.dart';
 import 'package:assistant_planning/core/french_format.dart';
@@ -33,6 +34,7 @@ Future<AppDatabase> pumpApp(
   NotificationGateway? gateway,
   SyncBackend? syncBackend,
   bool loginRequired = false,
+  bool inAppReminders = false,
 }) async {
   tester.view.physicalSize = Size(width, height);
   tester.view.devicePixelRatio = 1;
@@ -47,6 +49,7 @@ Future<AppDatabase> pumpApp(
         notificationGatewayProvider.overrideWithValue(gateway),
         syncBackendProvider.overrideWithValue(syncBackend),
         loginRequiredProvider.overrideWithValue(loginRequired),
+        inAppRemindersEnabledProvider.overrideWithValue(inAppReminders),
       ],
       child: const AssistantPlanningApp(),
     ),

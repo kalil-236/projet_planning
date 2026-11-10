@@ -3,6 +3,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../domain/app_settings.dart';
+import 'in_app_reminders.dart';
 import 'keyboard_shortcuts.dart';
 import 'providers.dart';
 import 'router.dart';
@@ -17,9 +18,11 @@ class AssistantPlanningApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(reminderLifecycleProvider);
     ref.watch(syncLifecycleProvider);
+    ref.watch(inAppRemindersProvider);
     final router = ref.watch(routerProvider);
     return MaterialApp.router(
       title: 'F.R.I.D.A.Y',
+      scaffoldMessengerKey: rootMessengerKey,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
@@ -34,10 +37,21 @@ class AssistantPlanningApp extends ConsumerWidget {
       routerConfig: router,
       // Sous les raccourcis par défaut : une touche non utilisée ici, ou un
       // raccourci inactif, garde son comportement habituel.
-      builder: (context, child) => Shortcuts(
-        shortcuts: appShortcuts,
-        child: Actions(actions: appShortcutActions(ref, router), child: child!),
-      ),
+      builder: (context, child) {
+        final shortcuts = Shortcuts(
+          shortcuts: appShortcuts,
+          child: Actions(
+            actions: appShortcutActions(ref, router),
+            child: child!,
+          ),
+        );
+        if (!MediaQuery.disableAnimationsOf(context)) return shortcuts;
+        final theme = Theme.of(context);
+        return Theme(
+          data: theme.copyWith(pageTransitionsTheme: reducedMotionTransitions),
+          child: shortcuts,
+        );
+      },
     );
   }
 }
