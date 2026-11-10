@@ -132,7 +132,7 @@ class _TodayBodyState extends ConsumerState<_TodayBody> {
         Expanded(
           child: tasks.isEmpty
               ? EmptyState(
-                  icon: LucideIcons.sun,
+                  illustration: AppIllustration.nothingToday,
                   message: "Rien de prévu aujourd'hui",
                   action: FilledButton.icon(
                     onPressed: () => context.go(AppDestination.importPlan.path),

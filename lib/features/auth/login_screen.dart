@@ -6,6 +6,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../app/destinations.dart';
 import '../../app/providers.dart';
 import '../../sync/sync_backend.dart';
+import '../shared/common_widgets.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -81,12 +82,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // TODO(illustration): illustration unDraw prévue en phase 4.
-                  Icon(
-                    LucideIcons.calendarCheck,
-                    size: 72,
-                    color: theme.colorScheme.primary,
-                  ),
+                  const Illustration(AppIllustration.login, maxHeight: 160),
                   const SizedBox(height: 16),
                   Text(
                     'Connexion',

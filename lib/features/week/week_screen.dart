@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../app/destinations.dart';
@@ -89,26 +90,37 @@ class _WeekScreenState extends ConsumerState<WeekScreen> {
                 icon: LucideIcons.info,
                 message: 'Impossible de lire le planning : $error',
               ),
-              data: (tasks) => switch (layout) {
-                ShellLayout.mobile => _DayList(
-                  tasks: tasks.where((t) => t.date == selected).toList(),
-                  onTaskTap: (task) => openTaskDetail(context, ref, task),
-                ),
-                ShellLayout.tablet => _WeekGrid(
-                  days: _tabletDays(days, selected),
-                  tasks: tasks,
-                  settings: settings,
-                  now: now,
-                  onTaskTap: (task) => openTaskDetail(context, ref, task),
-                ),
-                ShellLayout.desktop => _WeekGrid(
-                  days: days,
-                  tasks: tasks,
-                  settings: settings,
-                  now: now,
-                  onTaskTap: (task) => openTaskDetail(context, ref, task),
-                ),
-              },
+              data: (tasks) => tasks.isEmpty
+                  ? EmptyState(
+                      illustration: AppIllustration.noPlan,
+                      message: 'Aucun planning importé pour cette semaine',
+                      action: FilledButton.icon(
+                        onPressed: () =>
+                            context.go(AppDestination.importPlan.path),
+                        icon: const Icon(LucideIcons.fileUp),
+                        label: const Text('Importer un planning'),
+                      ),
+                    )
+                  : switch (layout) {
+                      ShellLayout.mobile => _DayList(
+                        tasks: tasks.where((t) => t.date == selected).toList(),
+                        onTaskTap: (task) => openTaskDetail(context, ref, task),
+                      ),
+                      ShellLayout.tablet => _WeekGrid(
+                        days: _tabletDays(days, selected),
+                        tasks: tasks,
+                        settings: settings,
+                        now: now,
+                        onTaskTap: (task) => openTaskDetail(context, ref, task),
+                      ),
+                      ShellLayout.desktop => _WeekGrid(
+                        days: days,
+                        tasks: tasks,
+                        settings: settings,
+                        now: now,
+                        onTaskTap: (task) => openTaskDetail(context, ref, task),
+                      ),
+                    },
             ),
           ),
         ],

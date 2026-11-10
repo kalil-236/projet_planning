@@ -83,3 +83,12 @@ Choix techniques non couverts par `SPEC_assistant_planning.md`.
 | Clé Supabase | Passée à `publishableKey`, sous le nom `SUPABASE_ANON_KEY`. | `anonKey` est dépréciée dans `supabase_flutter`. |
 | Table `categories` | Créée (7.3) mais pas synchronisée. | La v1 utilise une liste fixe dans le code. |
 | Hébergement web | GitHub Pages, déployé par GitHub Actions. | Gratuit, sans compte de plus. L'URL et la clé `anon` restent hors du dépôt, en variables GitHub. |
+| Variables GitHub | Le déploiement retire un préfixe `NOM=`, les espaces, les guillemets et la barre oblique finale. | Erreurs de copie fréquentes depuis un fichier `.env`. |
+
+## Phase 4
+
+| Sujet | Décision | Raison |
+|---|---|---|
+| Illustrations | unDraw « Relaxation », « Add files » et « AI personal assistant », téléchargées depuis cdn.undraw.co, bleu remplacé par #2563EB. | Reprennent les trois usages de 8.4. |
+| « Aucun planning importé » | Affiché sur Semaine quand la semaine n'a aucune tâche, avec un bouton « Importer un planning ». | La spécification ne dit pas quel écran le porte. Un jour vide de la semaine garde son icône. |
+| Mode sombre des illustrations | Couleurs remplacées à l'affichage : bleu vers `primary`, gris vers `foreground`, `surface`, `muted` ou `border`, teintes chaudes inchangées. | Les gris d'origine sont illisibles sur fond sombre. Le classement se fait par teinte et luminosité, sans couleur écrite dans le code. |
