@@ -54,10 +54,19 @@ class _WeekScreenState extends ConsumerState<WeekScreen> {
             tooltip: 'Semaine précédente',
             icon: const Icon(LucideIcons.chevronLeft),
           ),
-          TextButton(
-            onPressed: () => _select(null),
-            child: const Text("Aujourd'hui"),
-          ),
+          // Texte agrandi sur mobile : l'icône évite de déborder de la barre.
+          if (layout == ShellLayout.mobile &&
+              MediaQuery.textScalerOf(context).scale(1) > 1.3)
+            IconButton(
+              onPressed: () => _select(null),
+              tooltip: "Aujourd'hui",
+              icon: const Icon(LucideIcons.calendarCheck),
+            )
+          else
+            TextButton(
+              onPressed: () => _select(null),
+              child: const Text("Aujourd'hui"),
+            ),
           IconButton(
             onPressed: () => _moveWeek(selected, 1),
             tooltip: 'Semaine suivante',
