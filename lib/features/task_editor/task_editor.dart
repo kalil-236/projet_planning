@@ -10,11 +10,17 @@ import '../../domain/category.dart';
 import '../../domain/local_date.dart';
 import '../../domain/local_time.dart';
 import '../../domain/task.dart';
+import '../../domain/task_draft.dart';
 import '../shared/common_widgets.dart';
 import '../shared/task_visuals.dart';
 
-/// Formulaire d'ajout ([task] nul) ou de modification.
-Future<void> showTaskEditor(BuildContext context, {Task? task}) {
+/// Formulaire d'ajout ([task] nul, éventuellement prérempli par [draft]) ou
+/// de modification.
+Future<void> showTaskEditor(
+  BuildContext context, {
+  Task? task,
+  TaskDraft? draft,
+}) {
   final width = MediaQuery.sizeOf(context).width;
   if (ShellLayout.forWidth(width) == ShellLayout.mobile) {
     return showModalBottomSheet<void>(
@@ -22,7 +28,7 @@ Future<void> showTaskEditor(BuildContext context, {Task? task}) {
       isScrollControlled: true,
       useSafeArea: true,
       useRootNavigator: true,
-      builder: (_) => TaskEditorForm(task: task),
+      builder: (_) => TaskEditorForm(task: task, draft: draft),
     );
   }
   return showDialog<void>(
@@ -30,16 +36,17 @@ Future<void> showTaskEditor(BuildContext context, {Task? task}) {
     builder: (_) => Dialog(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 520),
-        child: TaskEditorForm(task: task),
+        child: TaskEditorForm(task: task, draft: draft),
       ),
     ),
   );
 }
 
 class TaskEditorForm extends ConsumerStatefulWidget {
-  const TaskEditorForm({this.task, super.key});
+  const TaskEditorForm({this.task, this.draft, super.key});
 
   final Task? task;
+  final TaskDraft? draft;
 
   @override
   ConsumerState<TaskEditorForm> createState() => _TaskEditorFormState();
@@ -65,17 +72,19 @@ class _TaskEditorFormState extends ConsumerState<TaskEditorForm> {
   void initState() {
     super.initState();
     final task = widget.task;
+    final draft = widget.draft;
     final now = ref.read(nowProvider);
-    final start = task?.start ?? _nextHour(now.time);
-    _title = TextEditingController(text: task?.title ?? '');
+    final start = task?.start ?? draft?.start ?? _nextHour(now.time);
+    _title = TextEditingController(text: task?.title ?? draft?.title ?? '');
     _notes = TextEditingController(text: task?.notes ?? '');
-    _date = task?.date ?? now.date;
+    _date = task?.date ?? draft?.date ?? now.date;
     _start = start;
     _end =
         task?.end ??
+        draft?.end ??
         start.plusMinutes(_defaultDuration) ??
         const LocalTime(23, 59);
-    _category = task?.category ?? TaskCategory.autre;
+    _category = task?.category ?? draft?.category ?? TaskCategory.autre;
     _reminder = task?.reminderBeforeMin;
     _status = task?.status ?? TaskStatus.todo;
   }
@@ -231,6 +240,7 @@ class _TaskEditorFormState extends ConsumerState<TaskEditorForm> {
             const SizedBox(height: 12),
             DropdownButtonFormField<TaskCategory>(
               initialValue: _category,
+              isExpanded: true,
               decoration: const InputDecoration(labelText: 'Catégorie'),
               items: [
                 for (final category in TaskCategory.values)
@@ -240,7 +250,12 @@ class _TaskEditorFormState extends ConsumerState<TaskEditorForm> {
                       children: [
                         Icon(categoryIcon(category), size: 20),
                         const SizedBox(width: 8),
-                        Text(category.label),
+                        Flexible(
+                          child: Text(
+                            category.label,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -250,12 +265,16 @@ class _TaskEditorFormState extends ConsumerState<TaskEditorForm> {
             const SizedBox(height: 12),
             DropdownButtonFormField<int?>(
               initialValue: _reminder,
+              isExpanded: true,
               decoration: const InputDecoration(labelText: 'Rappel'),
               items: [
                 for (final minutes in reminderChoices)
                   DropdownMenuItem(
                     value: minutes,
-                    child: Text(_reminderLabel(minutes, fallback)),
+                    child: Text(
+                      _reminderLabel(minutes, fallback),
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
               ],
               onChanged: (value) => setState(() => _reminder = value),
@@ -264,6 +283,7 @@ class _TaskEditorFormState extends ConsumerState<TaskEditorForm> {
               const SizedBox(height: 12),
               DropdownButtonFormField<TaskStatus>(
                 initialValue: _status,
+                isExpanded: true,
                 decoration: const InputDecoration(labelText: 'Statut'),
                 items: [
                   for (final status in TaskStatus.values)

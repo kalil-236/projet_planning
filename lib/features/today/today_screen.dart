@@ -10,9 +10,11 @@ import '../../app/providers.dart';
 import '../../app/theme/app_colors.dart';
 import '../../core/french_format.dart';
 import '../../domain/app_settings.dart';
+import '../../domain/day_gaps.dart';
 import '../../domain/local_date.dart';
 import '../../domain/local_time.dart';
 import '../../domain/task.dart';
+import '../../domain/task_draft.dart';
 import '../../domain/task_ops.dart';
 import '../shared/common_widgets.dart';
 import '../shared/shift_dialogs.dart';
@@ -103,6 +105,13 @@ class _TodayBodyState extends ConsumerState<_TodayBody> {
     final now = widget.now;
     final tasks = widget.tasks;
     final scale = _scale;
+    final slots = freeSlots(
+      tasks: tasks,
+      dayStart: widget.settings.dayStart,
+      dayEnd: widget.settings.dayEnd,
+      from: now.time,
+    );
+    final conflicts = overlappingTaskIds(tasks);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -119,6 +128,25 @@ class _TodayBodyState extends ConsumerState<_TodayBody> {
                   daySummary(tasks, now.time),
                   style: TextStyle(color: colors.mutedForeground),
                 ),
+                if (conflicts.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(
+                        LucideIcons.triangleAlert,
+                        size: 20,
+                        color: colors.destructive,
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          '${conflicts.length} tâches se chevauchent',
+                          style: TextStyle(color: colors.foreground),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
                 const SizedBox(height: 8),
                 OutlinedButton.icon(
                   onPressed: () => showShiftDayDialog(context),
@@ -152,6 +180,16 @@ class _TodayBodyState extends ConsumerState<_TodayBody> {
                           tasks: tasks,
                           scale: scale,
                           now: now.time,
+                          freeSlots: slots,
+                          conflictIds: conflicts,
+                          onFreeSlotTap: (slot) => showTaskEditor(
+                            context,
+                            draft: TaskDraft(
+                              date: now.date,
+                              start: slot.start,
+                              end: slot.end,
+                            ),
+                          ),
                           onTaskTap: (task) =>
                               openTaskDetail(context, ref, task),
                         ),

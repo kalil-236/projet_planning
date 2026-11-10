@@ -9,6 +9,7 @@ import '../../app/theme/app_colors.dart';
 import '../../core/breakpoints.dart';
 import '../../core/french_format.dart';
 import '../../domain/app_settings.dart';
+import '../../domain/day_gaps.dart';
 import '../../domain/local_date.dart';
 import '../../domain/local_time.dart';
 import '../../domain/task.dart';
@@ -261,12 +262,14 @@ class _DayList extends StatelessWidget {
         message: 'Rien de prévu ce jour',
       );
     }
+    final conflicts = overlappingTaskIds(tasks);
     return ListView.separated(
       padding: const EdgeInsets.all(16),
       itemCount: tasks.length,
       separatorBuilder: (_, _) => const SizedBox(height: 8),
       itemBuilder: (_, index) => TaskListTile(
         task: tasks[index],
+        conflict: conflicts.contains(tasks[index].id),
         onTap: () => onTaskTap(tasks[index]),
       ),
     );
@@ -293,6 +296,7 @@ class _WeekGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final visible = tasks.where((t) => days.contains(t.date)).toList();
+    final conflicts = overlappingTaskIds(visible);
     final scale = TimelineScale.covering(
       dayStart: settings.dayStart,
       dayEnd: settings.dayEnd,
@@ -333,6 +337,7 @@ class _WeekGrid extends StatelessWidget {
                   Expanded(
                     child: TimelineColumn(
                       tasks: visible.where((t) => t.date == day).toList(),
+                      conflictIds: conflicts,
                       scale: scale,
                       now: _nowFor(day),
                       highlighted: day == now.date,

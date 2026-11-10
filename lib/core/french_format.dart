@@ -52,3 +52,11 @@ String formatHour(LocalTime time) => time.minute == 0
 /// « 08:00 – 10:00 »
 String formatTimeRange(LocalTime start, LocalTime end) =>
     '${start.toHHmm()} – ${end.toHHmm()}';
+
+/// « 45 min », « 1 h » ou « 1 h 30 »
+String formatDuration(int minutes) {
+  if (minutes < 60) return '$minutes min';
+  final rest = minutes % 60;
+  final hours = minutes ~/ 60;
+  return rest == 0 ? '$hours h' : '$hours h ${rest.toString().padLeft(2, '0')}';
+}

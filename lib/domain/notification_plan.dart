@@ -155,7 +155,7 @@ Iterable<_Draft> _draftsForTask(Task task, AppSettings settings) sync* {
   );
   final before = task.reminderBeforeMin ?? settings.defaultReminderMin;
   if (before > 0) {
-    final delay = _formatDelay(before);
+    final delay = formatDuration(before);
     final preKey = '${task.id}|pre';
     yield _Draft(
       key: preKey,
@@ -183,14 +183,6 @@ _Draft _summaryDraft(
     title: morningSummaryTitle(key),
     body: morningSummaryBody(dayTasks, key: key),
   );
-}
-
-/// « 10 min », « 1 h » ou « 1 h 30 »
-String _formatDelay(int minutes) {
-  if (minutes < 60) return '$minutes min';
-  final rest = minutes % 60;
-  final hours = minutes ~/ 60;
-  return rest == 0 ? '$hours h' : '$hours h $rest';
 }
 
 int _uniqueId(String key, Set<int> used) {
