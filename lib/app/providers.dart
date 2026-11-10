@@ -182,3 +182,16 @@ class SelectedTaskNotifier extends Notifier<String?> {
 final selectedTaskIdProvider = NotifierProvider<SelectedTaskNotifier, String?>(
   SelectedTaskNotifier.new,
 );
+
+/// Jour choisi dans Semaine ; `null` suit la date du jour.
+class WeekSelectedDayNotifier extends Notifier<LocalDate?> {
+  @override
+  LocalDate? build() => null;
+
+  void select(LocalDate? day) => state = day;
+}
+
+final weekSelectedDayProvider =
+    NotifierProvider<WeekSelectedDayNotifier, LocalDate?>(
+      WeekSelectedDayNotifier.new,
+    );

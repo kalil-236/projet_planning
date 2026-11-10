@@ -27,17 +27,17 @@ class WeekScreen extends ConsumerStatefulWidget {
 class _WeekScreenState extends ConsumerState<WeekScreen> {
   static const _tabletDayCount = 3;
 
-  /// `null` : suit la date du jour.
-  LocalDate? _selected;
+  void _select(LocalDate? day) =>
+      ref.read(weekSelectedDayProvider.notifier).select(day);
 
   void _moveWeek(LocalDate selected, int weeks) =>
-      setState(() => _selected = selected.addDays(weeks * 7));
+      _select(selected.addDays(weeks * 7));
 
   @override
   Widget build(BuildContext context) {
     final now = ref.watch(nowProvider);
     final settings = ref.watch(currentSettingsProvider);
-    final selected = _selected ?? now.date;
+    final selected = ref.watch(weekSelectedDayProvider) ?? now.date;
     final monday = selected.monday;
     final days = [for (var i = 0; i < 7; i++) monday.addDays(i)];
     final tasksAsync = ref.watch(
@@ -55,7 +55,7 @@ class _WeekScreenState extends ConsumerState<WeekScreen> {
             icon: const Icon(LucideIcons.chevronLeft),
           ),
           TextButton(
-            onPressed: () => setState(() => _selected = null),
+            onPressed: () => _select(null),
             child: const Text("Aujourd'hui"),
           ),
           IconButton(
@@ -81,7 +81,7 @@ class _WeekScreenState extends ConsumerState<WeekScreen> {
               days: days,
               selected: selected,
               today: now.date,
-              onSelected: (day) => setState(() => _selected = day),
+              onSelected: _select,
             ),
           Expanded(
             child: tasksAsync.when(
@@ -108,6 +108,7 @@ class _WeekScreenState extends ConsumerState<WeekScreen> {
                       ),
                       ShellLayout.tablet => _WeekGrid(
                         days: _tabletDays(days, selected),
+                        selected: selected,
                         tasks: tasks,
                         settings: settings,
                         now: now,
@@ -115,6 +116,7 @@ class _WeekScreenState extends ConsumerState<WeekScreen> {
                       ),
                       ShellLayout.desktop => _WeekGrid(
                         days: days,
+                        selected: selected,
                         tasks: tasks,
                         settings: settings,
                         now: now,
@@ -265,6 +267,7 @@ class _DayList extends StatelessWidget {
 class _WeekGrid extends StatelessWidget {
   const _WeekGrid({
     required this.days,
+    required this.selected,
     required this.tasks,
     required this.settings,
     required this.now,
@@ -272,6 +275,7 @@ class _WeekGrid extends StatelessWidget {
   });
 
   final List<LocalDate> days;
+  final LocalDate selected;
   final List<Task> tasks;
   final AppSettings settings;
   final LocalDateTime now;
@@ -300,7 +304,11 @@ class _WeekGrid extends StatelessWidget {
             children: [
               for (final day in days)
                 Expanded(
-                  child: _GridDayHeader(day: day, today: now.date),
+                  child: _GridDayHeader(
+                    day: day,
+                    today: now.date,
+                    isSelected: day == selected,
+                  ),
                 ),
             ],
           ),
@@ -334,34 +342,45 @@ class _WeekGrid extends StatelessWidget {
 }
 
 class _GridDayHeader extends StatelessWidget {
-  const _GridDayHeader({required this.day, required this.today});
+  const _GridDayHeader({
+    required this.day,
+    required this.today,
+    required this.isSelected,
+  });
 
   final LocalDate day;
   final LocalDate today;
+
+  /// Jour choisi au clavier (`←` et `→`).
+  final bool isSelected;
 
   @override
   Widget build(BuildContext context) {
     final isToday = day == today;
     final colors = context.colors;
     final label = '${weekdayShort(day)} ${day.day}';
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(
-            color: isToday ? colors.primaryOnSurface : colors.border,
-            width: isToday ? 2 : 1,
+    return Semantics(
+      selected: isSelected,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected ? colors.muted : null,
+          border: Border(
+            bottom: BorderSide(
+              color: isToday ? colors.primaryOnSurface : colors.border,
+              width: isToday ? 2 : 1,
+            ),
           ),
         ),
-      ),
-      child: Text(
-        label,
-        textAlign: TextAlign.center,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: Theme.of(context).textTheme.labelLarge?.copyWith(
-          color: colors.foreground,
-          fontWeight: isToday ? FontWeight.w700 : FontWeight.w500,
+        child: Text(
+          label,
+          textAlign: TextAlign.center,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: Theme.of(context).textTheme.labelLarge?.copyWith(
+            color: colors.foreground,
+            fontWeight: isToday ? FontWeight.w700 : FontWeight.w500,
+          ),
         ),
       ),
     );
