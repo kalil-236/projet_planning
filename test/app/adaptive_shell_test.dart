@@ -1,18 +1,15 @@
-import 'package:assistant_planning/app/app.dart';
 import 'package:assistant_planning/core/breakpoints.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-Future<void> pumpAppAtWidth(WidgetTester tester, double width) async {
-  tester.view.physicalSize = Size(width, 900);
-  tester.view.devicePixelRatio = 1;
-  addTearDown(tester.view.reset);
-  await tester.pumpWidget(const ProviderScope(child: AssistantPlanningApp()));
-  await tester.pumpAndSettle();
-}
+import '../support/test_app.dart';
+
+Future<void> pumpAppAtWidth(WidgetTester tester, double width) =>
+    pumpApp(tester, width: width);
 
 void main() {
+  setUpAll(initAppFormats);
+
   group('ShellLayout.forWidth', () {
     test('respecte les seuils de la section 9.1', () {
       expect(ShellLayout.forWidth(599.9), ShellLayout.mobile);

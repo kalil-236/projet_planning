@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../domain/app_settings.dart';
+import 'providers.dart';
 import 'router.dart';
 import 'theme/app_theme.dart';
 
@@ -17,7 +19,11 @@ class AssistantPlanningApp extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
-      themeMode: ThemeMode.system,
+      themeMode: switch (ref.watch(currentSettingsProvider).themeMode) {
+        AppThemeMode.system => ThemeMode.system,
+        AppThemeMode.light => ThemeMode.light,
+        AppThemeMode.dark => ThemeMode.dark,
+      },
       locale: _locale,
       supportedLocales: const [_locale],
       localizationsDelegates: GlobalMaterialLocalizations.delegates,

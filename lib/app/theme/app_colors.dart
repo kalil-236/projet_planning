@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../domain/category.dart';
+
 /// Tokens de couleur de la direction « Calendrier clair » (section 8.1).
 ///
 /// C'est le seul fichier de l'application autorisé à contenir des valeurs de
@@ -51,6 +53,12 @@ class AppColors extends ThemeExtension<AppColors> {
     ring: Color(0xFF60A5FA),
   );
 
+  static const _categoryCours = Color(0xFF2563EB);
+  static const _categoryEtude = Color(0xFF7C3AED);
+  static const _categoryActivite = Color(0xFF059669);
+  static const _categoryRepos = Color(0xFFD97706);
+  static const _categoryAutre = Color(0xFF64748B);
+
   final Color primary;
   final Color onPrimary;
   final Color secondary;
@@ -69,6 +77,16 @@ class AppColors extends ThemeExtension<AppColors> {
   /// `primary` n'atteint pas 4,5:1 sur `surface` en mode sombre, contrairement
   /// à `ring`, qui vaut `primary` en mode clair.
   Color get primaryOnSurface => ring;
+
+  /// Couleur d'une catégorie (6.3), réservée au décor des blocs : le texte et
+  /// les icônes posés dessus utilisent `foreground`.
+  Color categoryColor(TaskCategory category) => switch (category) {
+    TaskCategory.cours => _categoryCours,
+    TaskCategory.etude => _categoryEtude,
+    TaskCategory.activite => _categoryActivite,
+    TaskCategory.repos => _categoryRepos,
+    TaskCategory.autre => _categoryAutre,
+  };
 
   @override
   AppColors copyWith({

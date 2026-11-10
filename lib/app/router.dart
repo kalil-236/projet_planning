@@ -8,6 +8,7 @@ import '../features/today/today_screen.dart';
 import '../features/week/week_screen.dart';
 import 'adaptive_shell.dart';
 import 'destinations.dart';
+import 'providers.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final router = GoRouter(
@@ -16,10 +17,13 @@ final routerProvider = Provider<GoRouter>((ref) {
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) => AdaptiveShell(
           selectedIndex: navigationShell.currentIndex,
-          onDestinationSelected: (index) => navigationShell.goBranch(
-            index,
-            initialLocation: index == navigationShell.currentIndex,
-          ),
+          onDestinationSelected: (index) {
+            ref.read(selectedTaskIdProvider.notifier).select(null);
+            navigationShell.goBranch(
+              index,
+              initialLocation: index == navigationShell.currentIndex,
+            );
+          },
           child: navigationShell,
         ),
         branches: [

@@ -93,6 +93,40 @@ abstract final class AppTheme {
           color: colors.mutedForeground,
         ),
       ),
+      cardTheme: CardThemeData(
+        color: colors.surface,
+        elevation: 0,
+        margin: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: colors.border),
+        ),
+      ),
+      dialogTheme: DialogThemeData(backgroundColor: colors.surface),
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: colors.surface,
+        modalBackgroundColor: colors.surface,
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(foregroundColor: colors.primaryOnSurface),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: colors.primaryOnSurface,
+          side: BorderSide(color: colors.mutedForeground),
+        ),
+      ),
+      inputDecorationTheme: InputDecorationThemeData(
+        border: OutlineInputBorder(
+          borderSide: BorderSide(color: colors.mutedForeground),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: colors.mutedForeground),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: colors.ring, width: 2),
+        ),
+      ),
       extensions: [colors],
     );
   }
