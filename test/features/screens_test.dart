@@ -107,22 +107,23 @@ void main() {
       expect(find.text('Jour 0'), findsNothing);
     });
 
-    testWidgets('section 5.3 : option désactivée, lundi absent d\'Aujourd\'hui', (
-      tester,
-    ) async {
-      final clock = FakeClock.porto(tuesday, 7);
-      final db = await pumpApp(tester, clock: clock);
-      await importWeek(tester, db, clock, fromToday: false);
-      expect(find.text('Jour 1'), findsOneWidget);
-      expect(find.text('Jour 0'), findsNothing);
+    testWidgets(
+      'section 5.3 : option désactivée, lundi absent d\'Aujourd\'hui',
+      (tester) async {
+        final clock = FakeClock.porto(tuesday, 7);
+        final db = await pumpApp(tester, clock: clock);
+        await importWeek(tester, db, clock, fromToday: false);
+        expect(find.text('Jour 1'), findsOneWidget);
+        expect(find.text('Jour 0'), findsNothing);
 
-      await tester.tap(find.text('Semaine'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('9'));
-      await tester.pumpAndSettle();
-      expect(find.text('Jour 0'), findsOneWidget);
-      expect(find.text('Passée'), findsOneWidget);
-    });
+        await tester.tap(find.text('Semaine'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('9'));
+        await tester.pumpAndSettle();
+        expect(find.text('Jour 0'), findsOneWidget);
+        expect(find.text('Passée'), findsOneWidget);
+      },
+    );
 
     testWidgets('section 5.3 : passage de minuit, l\'appli reste ouverte', (
       tester,

@@ -27,6 +27,10 @@ String formatFullDate(LocalDate date) {
   return _capitalize('${weekdayName(date)} ${_dayNumber(date)} $monthYear');
 }
 
+/// « 10 novembre »
+String formatDayMonth(LocalDate date) =>
+    '${_dayNumber(date)} ${DateFormat('MMMM', _locale).format(date.toDateTime())}';
+
 /// « 9 – 15 novembre 2026 » ou « 30 novembre – 6 décembre 2026 »
 String formatWeekRange(LocalDate monday) {
   final sunday = monday.addDays(6);

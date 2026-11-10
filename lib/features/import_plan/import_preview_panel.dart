@@ -65,8 +65,8 @@ class _ImportPreviewPanelState extends ConsumerState<ImportPreviewPanel> {
       fromToday: _fromToday,
     );
     final message = _mode == ImportMode.replace && range != null
-        ? 'Les tâches à faire du ${range.start.toIso()} au '
-              '${range.end.toIso()} seront remplacées. Les tâches faites ou '
+        ? 'Les tâches à faire du ${formatDayMonth(range.start)} au '
+              '${formatDayMonth(range.end)} seront remplacées. Les tâches faites ou '
               'annulées sont conservées.'
         : 'Les tâches seront ajoutées au planning, sans doublons.';
     final confirmed = await showDialog<bool>(
@@ -149,7 +149,7 @@ class _ImportPreviewPanelState extends ConsumerState<ImportPreviewPanel> {
               _Warning(
                 icon: LucideIcons.info,
                 text:
-                    'Chevauchement le ${overlap.first.date.toIso()} : '
+                    'Chevauchement le ${formatDayMonth(overlap.first.date)} : '
                     '« ${overlap.first.title} » et '
                     '« ${overlap.second.title} ».',
               ),
@@ -158,7 +158,7 @@ class _ImportPreviewPanelState extends ConsumerState<ImportPreviewPanel> {
                 icon: LucideIcons.copy,
                 text:
                     'Doublon ignoré : « ${duplicate.title} », '
-                    '${duplicate.date.toIso()} à ${duplicate.start.toHHmm()}.',
+                    'le ${formatDayMonth(duplicate.date)} à ${duplicate.start.toHHmm()}.',
               ),
             for (final invalid in plan.invalidTasks)
               _Warning(

@@ -32,7 +32,12 @@ abstract final class AppTheme {
       outlineVariant: colors.border,
     );
 
-    final base = ThemeData(colorScheme: scheme, fontFamily: fontFamily);
+    final base = ThemeData(
+      colorScheme: scheme,
+      fontFamily: fontFamily,
+      visualDensity: VisualDensity.standard,
+      materialTapTargetSize: MaterialTapTargetSize.padded,
+    );
     final text = base.textTheme;
     final indicator = colors.primaryOnSurface.withValues(
       alpha: _indicatorOpacity,

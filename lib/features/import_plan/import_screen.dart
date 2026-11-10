@@ -43,12 +43,19 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
   }
 
   Future<void> _pickFile() async {
-    final files = await FilePicker.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: const ['json'],
-    );
-    if (files.isEmpty) return;
-    _load(files.first.name, await files.first.readAsBytes());
+    try {
+      final file = await FilePicker.pickFile(
+        type: FileType.custom,
+        allowedExtensions: const ['json'],
+      );
+      if (file == null) return;
+      _load(file.name, await file.readAsBytes());
+    } on Exception catch (error) {
+      setState(() {
+        _plan = null;
+        _error = 'Impossible de lire le fichier : $error';
+      });
+    }
   }
 
   void _load(String name, Uint8List bytes) {
