@@ -57,3 +57,4 @@ key.properties
 
 # Rapports Gradle
 /android/build/
+/android/.kotlin/

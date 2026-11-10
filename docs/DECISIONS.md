@@ -39,3 +39,23 @@ Choix techniques non couverts par `SPEC_assistant_planning.md`.
 | Blocs de la frise | Pas de badge pour l'état « À faire », qui est l'état normal. Il reste affiché dans les listes et le détail. | Évite de surcharger des blocs étroits. |
 | Illustrations | Grande icône Lucide avec `TODO(illustration)`. | Prévues en phase 4 (14). |
 | Compilation Kotlin | `kotlin.incremental=false` dans `android/gradle.properties`. | La compilation incrémentale échoue sous Windows quand les plugins (C:) et le projet (E:) sont sur des lecteurs différents. |
+
+## Phase 2
+
+| Sujet | Décision | Raison |
+|---|---|---|
+| `flutter_timezone` | Non installé, malgré la section 4. | Le fuseau vient toujours des réglages (1, 10.4). Aucune fonctionnalité ne lit celui du téléphone. |
+| `url_launcher` | Ajouté, hors liste de la section 4. | Nécessaire pour le lien vers dontkillmyapp.com (10.5). |
+| Alarmes exactes | `USE_EXACT_ALARM` dès Android 13, `SCHEDULE_EXACT_ALARM` limité à Android 12 et moins. | Sur Android 13 et plus, l'autorisation est accordée d'office et ne peut pas être retirée. `USE_EXACT_ALARM` serait contrôlé sur le Play Store, mais l'APK est installé directement. |
+| Alarmes exactes refusées | Repli sur `inexactAllowWhileIdle`, avec un avertissement dans l'assistance batterie. | Un rappel en retard vaut mieux qu'aucun rappel. |
+| Reprogrammation | Annule seulement les rappels devenus inutiles, puis réécrit tous les autres. Pas de `cancelAll`. | `cancelAll` effacerait aussi les notifications déjà affichées. Tout réécrire reste nécessaire : un arrêt forcé supprime les alarmes système sans vider la liste du plugin. |
+| Identifiants | Hachage FNV-1a stable de la tâche et du type de rappel. L'identifiant 0 est réservé au test. | Un identifiant numéroté dans l'ordre remplacerait à tort une notification déjà affichée. |
+| Appels simultanés | Un seul passage à la fois ; un appel pendant un passage en déclenche un dernier. | Le dernier passage lit toujours l'état le plus récent. |
+| Échec de programmation | Journalisé, sans faire échouer l'écriture de la tâche. | Une erreur système ne doit pas empêcher d'annuler ou d'importer. |
+| Plafond de 200 | Garde les notifications les plus proches. | Les plus lointaines seront programmées lors d'une prochaine ouverture. |
+| Texte du pré-rappel | « Dans 10 min : {titre} », avec l'horaire en corps. | Non précisé en 10.1. |
+| Titre du résumé | « Résumé du matin », longueur limitée à 300 caractères. | Coupe entre deux tâches, ou dans le titre s'il n'y en a qu'une. |
+| Demande de permission | Marquée dans une colonne locale, `notification_prompt_shown`. | Android ne permet pas de savoir si la demande a déjà été faite. Propre à l'appareil, cette colonne ne sera pas synchronisée. |
+| Toucher une notification | Ouvre l'application sur son écran courant. | Non précisé. Les actions sont prévues en phase 4 (10.6). |
+| Icône de notification | Icône Lucide `bell` en vecteur Android. | L'icône doit être monochrome et rester Lucide (8.3). |
+| Mémoire Gradle | 4 Go au lieu de 8. | La machine de développement a 7,7 Go de RAM : 8 Go faisaient planter la compilation. |
