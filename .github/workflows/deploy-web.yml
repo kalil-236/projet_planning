@@ -23,18 +23,34 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Vérifier la configuration
+        env:
+          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
+        run: |
+          case "$SUPABASE_URL" in
+            https://*.supabase.co) ;;
+            *) echo "::error::SUPABASE_URL doit valoir https://xxx.supabase.co, sans préfixe ni espace."; exit 1 ;;
+          esac
+          case "$SUPABASE_ANON_KEY" in
+            ""|*=*|*" "*) echo "::error::SUPABASE_ANON_KEY doit contenir la clé seule, sans préfixe ni espace."; exit 1 ;;
+          esac
+      - uses: actions/checkout@v5
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: 3.47.9
           channel: stable
       - run: flutter pub get
       - run: flutter test
-      - run: >-
+      - name: Compiler le web
+        env:
+          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
+        run: >-
           flutter build web --release
           --base-href "/${{ github.event.repository.name }}/"
-          --dart-define=SUPABASE_URL=${{ vars.SUPABASE_URL }}
-          --dart-define=SUPABASE_ANON_KEY=${{ vars.SUPABASE_ANON_KEY }}
+          --dart-define=SUPABASE_URL="$SUPABASE_URL"
+          --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY"
       - uses: actions/upload-pages-artifact@v3
         with:
           path: build/web
