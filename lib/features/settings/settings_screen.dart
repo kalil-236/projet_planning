@@ -1,10 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../app/destinations.dart';
 import '../../app/providers.dart';
+import '../../app/router.dart';
 import '../../core/time_zones.dart';
 import '../../domain/app_settings.dart';
 import '../../domain/local_time.dart';
@@ -83,6 +85,23 @@ class SettingsScreen extends ConsumerWidget {
                               ),
                             ),
                           ),
+                          SwitchListTile(
+                            secondary: const Icon(LucideIcons.sunrise),
+                            title: const Text('Résumé du matin'),
+                            value: settings.morningSummaryEnabled,
+                            onChanged: (value) => save(
+                              settings.copyWith(morningSummaryEnabled: value),
+                            ),
+                          ),
+                          if (settings.morningSummaryEnabled)
+                            _TimeTile(
+                              icon: LucideIcons.alarmClock,
+                              title: 'Heure du résumé',
+                              value: settings.morningSummaryTime,
+                              onPicked: (time) => save(
+                                settings.copyWith(morningSummaryTime: time),
+                              ),
+                            ),
                           ListTile(
                             leading: const Icon(LucideIcons.calendarClock),
                             title: const Text('Fuseau horaire'),
@@ -114,6 +133,19 @@ class SettingsScreen extends ConsumerWidget {
                                   save(settings.copyWith(themeMode: value)),
                             ),
                           ),
+                          if (ref.watch(notificationGatewayProvider) != null)
+                            ListTile(
+                              leading: const Icon(LucideIcons.batteryCharging),
+                              title: const Text('Assistance batterie'),
+                              subtitle: const Text(
+                                "Pour recevoir les rappels à l'heure.",
+                              ),
+                              trailing: const Icon(LucideIcons.chevronRight),
+                              onTap: () => context.go(
+                                '${AppDestination.settings.path}/'
+                                '$batteryAssistanceSegment',
+                              ),
+                            ),
                         ],
                       ),
                     ),
