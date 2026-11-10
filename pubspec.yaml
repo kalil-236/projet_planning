@@ -45,6 +45,9 @@ dependencies:
   intl: ^0.20.3
   file_picker: ^13.3.2
   desktop_drop: ^0.8.0
+  flutter_local_notifications: ^23.0.0
+  permission_handler: ^13.0.2
+  url_launcher: ^6.3.3
 dev_dependencies:
   flutter_test:
     sdk: flutter
