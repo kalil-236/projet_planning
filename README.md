@@ -12,6 +12,17 @@ flutter run -d <appareil> # téléphone Android ou émulateur
 
 Sans configuration Supabase, l'application fonctionne en local, sans compte ni synchronisation.
 
+Raccourcis clavier sur PC : `N` nouvelle tâche, `T` aujourd'hui, `←` et `→` jour précédent et suivant dans Semaine.
+
+## Variables d'environnement
+
+| Nom | Rôle |
+|---|---|
+| `SUPABASE_URL` | URL du projet Supabase |
+| `SUPABASE_ANON_KEY` | Clé publique `anon` ou `publishable` du projet, protégée par les règles d'accès des tables |
+
+Elles sont lues à la compilation, depuis `env.json` en local et depuis les variables du dépôt GitHub pour le web.
+
 ## Configurer Supabase
 
 1. Créez un projet gratuit sur [supabase.com](https://supabase.com).
@@ -27,11 +38,43 @@ flutter run -d chrome --dart-define-from-file=env.json
 
 ## Générer l'APK
 
+### Clé de signature
+
+L'APK de release est signé avec une clé personnelle, gardée hors du dépôt. À faire une seule fois :
+
+```powershell
+keytool -genkeypair -v -keystore $env:USERPROFILE\.keystores\friday-release.jks `
+  -storetype PKCS12 -alias friday -keyalg RSA -keysize 2048 -validity 10000
+```
+
+Puis créez `android\key.properties`, ignoré par Git :
+
+```properties
+storePassword=<mot de passe choisi>
+keyPassword=<mot de passe choisi>
+keyAlias=friday
+storeFile=C:/Users/<vous>/.keystores/friday-release.jks
+```
+
+Sauvegardez ces deux fichiers ailleurs que sur le PC, par exemple sur une clé USB. Sans eux, une nouvelle version ne pourra plus s'installer par-dessus l'ancienne : il faudrait désinstaller l'application, ce qui efface les données qui n'ont pas été synchronisées.
+
+Sans `key.properties`, l'APK est signé avec la clé de débogage du PC.
+
+### Compiler
+
 ```powershell
 flutter build apk --release --split-per-abi --dart-define-from-file=env.json
 ```
 
-Pour un téléphone récent, installez `build\app\outputs\flutter-apk\app-arm64-v8a-release.apk`.
+Pour un téléphone récent, utilisez `build\app\outputs\flutter-apk\app-arm64-v8a-release.apk`.
+
+### Installer sur le téléphone
+
+1. Copiez l'APK sur le téléphone (câble USB, Google Drive ou e-mail).
+2. Ouvrez-le depuis l'application **Fichiers**. Android demande d'autoriser l'installation depuis cette source : acceptez pour cette application seulement.
+3. Au premier lancement, acceptez les notifications, puis ouvrez **Réglages > Assistance batterie** pour exclure l'application de l'optimisation de batterie.
+
+Une mise à jour s'installe par-dessus l'ancienne version, sans perte de données, tant qu'elle est signée avec la même clé.
 
 ## Déployer le web
 
