@@ -14,6 +14,15 @@ Sans configuration Supabase, l'application fonctionne en local, sans compte ni s
 
 Raccourcis clavier sur PC : `N` nouvelle tâche, `T` aujourd'hui, `←` et `→` jour précédent et suivant dans Semaine.
 
+## Fonctionnalités de la version 1.1
+
+- **Importer** : « Coller le planning » lit la réponse de Claude copiée telle quelle. Sur Android, un fichier JSON partagé ou ouvert avec F.R.I.D.A.Y arrive directement dans l'aperçu.
+- **Aujourd'hui** : ajout express en une phrase (« sport demain 18h 1h »), créneaux libres en pointillés (les toucher pour y ajouter une tâche), chevauchements signalés, gestes (glisser à droite : faite ; à gauche : décalée de 15 min, avec « Annuler »).
+- **Bilan** : taux de la semaine, série de jours réussis, temps par catégorie, et observations de F.R.I.D.A.Y ajoutées au prompt de la semaine suivante.
+- **Notifications** : la tâche en cours reste affichée avec un compte à rebours (mise en avant sur Android 16), rapport du soir avec « Reporter à demain », bilan de la semaine le dimanche soir.
+- **Widget d'accueil** « Prochaine mission » : appui long sur l'écran d'accueil, **Widgets**, F.R.I.D.A.Y.
+- **Voix** : F.R.I.D.A.Y lit le briefing et le bilan avec la voix française de l'appareil, réglable dans **Réglages > Voix de F.R.I.D.A.Y**.
+
 ## Variables d'environnement
 
 | Nom | Rôle |
@@ -31,6 +40,8 @@ Elles sont lues à la compilation, depuis `env.json` en local et depuis les vari
 4. Dans les réglages **Authentication** de connexion, désactivez **Allow new users to sign up**.
 5. Dans **Project Settings > API**, relevez l'URL du projet et la clé `anon` (ou `publishable`). N'utilisez jamais la clé `service_role`.
 6. Copiez `env.example.json` vers `env.json` et renseignez ces deux valeurs. Ce fichier est ignoré par Git.
+
+Projet créé avant la version 1.1 : exécutez une fois [supabase/migrations/002_completed_at.sql](supabase/migrations/002_completed_at.sql) dans **SQL Editor**. Sans cette colonne, la synchronisation continue, mais l'heure à laquelle une tâche est faite reste sur l'appareil.
 
 ```powershell
 flutter run -d chrome --dart-define-from-file=env.json
