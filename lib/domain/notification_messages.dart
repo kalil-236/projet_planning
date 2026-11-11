@@ -135,3 +135,17 @@ int stableHash(String key) {
   }
   return hash & mask;
 }
+
+/// Appréciation de F.R.I.D.A.Y sur un taux de missions accomplies.
+String weekVerdict(double? rate) {
+  if (rate == null) {
+    return "Rien n'est encore dû, monsieur. Je garde l'œil ouvert.";
+  }
+  if (rate >= 0.9) return 'Performance exemplaire, monsieur.';
+  if (rate >= 0.75) return 'Solide, monsieur. Très solide.';
+  if (rate >= 0.5) return 'Correct, monsieur. Il y a de la marge.';
+  if (rate >= 0.25) {
+    return 'Semaine difficile, monsieur. On recalibre et on repart.';
+  }
+  return 'Les systèmes sont sous tension, monsieur. Allégeons le programme.';
+}

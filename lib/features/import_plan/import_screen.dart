@@ -12,6 +12,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../app/destinations.dart';
 import '../../app/providers.dart';
 import '../../app/theme/app_colors.dart';
+import '../../domain/insights.dart';
 import '../../domain/plan_parser.dart';
 import '../../domain/plan_prompt.dart';
 import '../../platform/shared_plan.dart';
@@ -88,9 +89,21 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
 
   Future<void> _copyPrompt() async {
     final messenger = ScaffoldMessenger.of(context);
+    final now = ref.read(nowProvider);
+    final settings = ref.read(currentSettingsProvider);
+    // Les observations du bilan rendent le prochain planning plus réaliste.
+    final history = await ref
+        .read(taskRepositoryProvider)
+        .activeInRange(insightRange(now.date));
     final prompt = buildPlanPrompt(
-      today: ref.read(todayProvider),
-      settings: ref.read(currentSettingsProvider),
+      today: now.date,
+      settings: settings,
+      insights: computeInsights(
+        tasks: history,
+        today: now.date,
+        now: now.time,
+        timezone: settings.timezone,
+      ),
     );
     await Clipboard.setData(ClipboardData(text: prompt));
     showMessage(messenger, 'Prompt copié dans le presse-papiers.');

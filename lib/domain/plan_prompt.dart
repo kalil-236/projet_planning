@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import '../core/french_format.dart';
 import 'app_settings.dart';
+import 'insights.dart';
 import 'local_date.dart';
 import 'local_time.dart';
 
@@ -11,6 +12,7 @@ const _planLengthDays = 7;
 String buildPlanPrompt({
   required LocalDate today,
   required AppSettings settings,
+  List<Insight> insights = const [],
 }) {
   final todayIso = today.toIso();
   final endIso = today.addDays(_planLengthDays - 1).toIso();
@@ -24,7 +26,7 @@ Journée de $dayStart à $dayEnd. Aucune tâche ne doit se chevaucher ni travers
 Réponds UNIQUEMENT avec un fichier JSON valide, au format suivant (schema_version 1), avec des dates absolues AAAA-MM-JJ et des heures HH:mm.
 Catégories autorisées : cours, etude, activite, repos, autre.
 ${_exampleSchema(todayIso, endIso, settings)}
-
+${_observations(insights)}
 Mon emploi du temps scolaire : ...
 Mes activités souhaitées (durée, fréquence, préférences) : ...''';
 }
@@ -52,4 +54,17 @@ String _exampleSchema(String todayIso, String endIso, AppSettings settings) {
       },
     ],
   });
+}
+
+/// Observations de l'application sur les semaines passées (section 5 du bilan).
+String _observations(List<Insight> insights) {
+  if (insights.isEmpty) return '';
+  final lines = [
+    for (final insight in insights.take(maxPromptInsights))
+      '- ${insight.promptLine}',
+  ];
+  return '''
+Observations de mon application sur mes ${insightHistoryDays ~/ 7} dernières semaines, à prendre en compte :
+${lines.join('\n')}
+''';
 }

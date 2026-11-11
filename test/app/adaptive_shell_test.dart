@@ -24,7 +24,7 @@ void main() {
       await pumpAppAtWidth(tester, 390);
       expect(find.byType(NavigationBar), findsOneWidget);
       expect(find.byType(NavigationRail), findsNothing);
-      expect(find.byType(NavigationDestination), findsNWidgets(4));
+      expect(find.byType(NavigationDestination), findsNWidgets(5));
     });
 
     testWidgets('800 dp : rail compact', (tester) async {
@@ -32,7 +32,7 @@ void main() {
       expect(find.byType(NavigationBar), findsNothing);
       final rail = tester.widget<NavigationRail>(find.byType(NavigationRail));
       expect(rail.extended, isFalse);
-      expect(rail.destinations, hasLength(4));
+      expect(rail.destinations, hasLength(5));
     });
 
     testWidgets('1280 dp : barre latérale', (tester) async {
@@ -40,17 +40,22 @@ void main() {
       expect(find.byType(NavigationBar), findsNothing);
       final rail = tester.widget<NavigationRail>(find.byType(NavigationRail));
       expect(rail.extended, isTrue);
-      expect(rail.destinations, hasLength(4));
+      expect(rail.destinations, hasLength(5));
     });
 
     for (final width in const [390.0, 800.0, 1280.0]) {
-      testWidgets('$width dp : les 4 destinations sont accessibles', (
+      testWidgets('$width dp : les 5 destinations sont accessibles', (
         tester,
       ) async {
         await pumpAppAtWidth(tester, width);
         expect(find.widgetWithText(AppBar, "Aujourd'hui"), findsOneWidget);
 
-        for (final label in const ['Semaine', 'Importer', 'Réglages']) {
+        for (final label in const [
+          'Semaine',
+          'Bilan',
+          'Importer',
+          'Réglages',
+        ]) {
           await tester.tap(find.text(label).first);
           await tester.pumpAndSettle();
           expect(find.widgetWithText(AppBar, label), findsOneWidget);

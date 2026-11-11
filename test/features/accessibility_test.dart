@@ -35,7 +35,7 @@ final _tasks = [
   ),
 ];
 
-const _screens = ['Aujourd\'hui', 'Semaine', 'Importer', 'Réglages'];
+const _screens = ['Aujourd\'hui', 'Semaine', 'Bilan', 'Importer', 'Réglages'];
 
 Future<void> _pumpSeeded(
   WidgetTester tester, {

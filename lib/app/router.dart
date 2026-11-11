@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../features/auth/login_screen.dart';
 import '../features/import_plan/import_screen.dart';
+import '../features/report/report_screen.dart';
 import '../features/settings/battery_assistance_screen.dart';
 import '../features/settings/notification_prompt.dart';
 import '../features/settings/settings_screen.dart';
@@ -83,6 +84,7 @@ final routerProvider = Provider<GoRouter>((ref) {
 Widget _screenFor(AppDestination destination) => switch (destination) {
   AppDestination.today => const TodayScreen(),
   AppDestination.week => const WeekScreen(),
+  AppDestination.report => const ReportScreen(),
   AppDestination.importPlan => const ImportScreen(),
   AppDestination.settings => const SettingsScreen(),
 };

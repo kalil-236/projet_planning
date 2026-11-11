@@ -42,3 +42,12 @@ DateTime toInstant(LocalDate date, LocalTime time, String timezone) {
     time.minute,
   ).toUtc();
 }
+
+/// Date et heure locales d'un instant [utc] dans [timezone].
+LocalDateTime toLocalDateTime(DateTime utc, String timezone) {
+  final local = tz.TZDateTime.from(utc, _location(timezone));
+  return LocalDateTime(
+    LocalDate(local.year, local.month, local.day),
+    LocalTime(local.hour, local.minute),
+  );
+}
