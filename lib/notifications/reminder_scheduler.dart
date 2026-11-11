@@ -2,8 +2,10 @@ import 'package:flutter/foundation.dart';
 
 import '../core/clock.dart';
 import '../core/time_zones.dart';
+import '../data/device_prefs_repository.dart';
 import '../data/settings_repository.dart';
 import '../data/task_repository.dart';
+import '../domain/device_preferences.dart';
 import '../domain/notification_plan.dart';
 import 'notification_gateway.dart';
 
@@ -26,12 +28,16 @@ class LocalReminderScheduler implements ReminderScheduler {
     required this._settings,
     required this._clock,
     required this._gateway,
+    this._devicePrefs,
   });
 
   final TaskRepository _tasks;
   final SettingsRepository _settings;
   final Clock _clock;
   final NotificationGateway _gateway;
+
+  /// `null` : préférences par défaut (rapport du soir activé).
+  final DevicePrefsRepository? _devicePrefs;
 
   Future<void>? _running;
   bool _rerun = false;
@@ -67,6 +73,7 @@ class LocalReminderScheduler implements ReminderScheduler {
       tasks: await _tasks.activeInRange(notificationWindow(today)),
       settings: settings,
       clock: _clock,
+      device: await _devicePrefs?.current() ?? const DevicePreferences(),
     );
     final exact = await _gateway.canScheduleExact();
 

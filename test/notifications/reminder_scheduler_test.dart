@@ -1,8 +1,10 @@
 import 'package:assistant_planning/data/database.dart';
 import 'package:assistant_planning/data/planning_service.dart';
+import 'package:assistant_planning/data/device_prefs_repository.dart';
 import 'package:assistant_planning/data/settings_repository.dart';
 import 'package:assistant_planning/data/task_repository.dart';
 import 'package:assistant_planning/domain/app_settings.dart';
+import 'package:assistant_planning/domain/device_preferences.dart';
 import 'package:assistant_planning/domain/category.dart';
 import 'package:assistant_planning/domain/local_time.dart';
 import 'package:assistant_planning/domain/notification_plan.dart';
@@ -36,11 +38,17 @@ void main() {
     tasks = TaskRepository(db);
     settings = SettingsRepository(db, clock);
     gateway = FakeNotificationGateway();
+    // Rapport du soir désactivé : ces tests comptent les rappels de tâche.
+    final devicePrefs = DevicePrefsRepository(db);
+    await devicePrefs.save(
+      const DevicePreferences(eveningReportEnabled: false),
+    );
     scheduler = LocalReminderScheduler(
       tasks: tasks,
       settings: settings,
       clock: clock,
       gateway: gateway,
+      devicePrefs: devicePrefs,
     );
     service = PlanningService(
       tasks: tasks,

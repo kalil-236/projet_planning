@@ -8,10 +8,12 @@ import 'package:supabase_flutter/supabase_flutter.dart' show Supabase;
 import '../core/clock.dart';
 import '../core/time_zones.dart';
 import '../data/database.dart';
+import '../data/device_prefs_repository.dart';
 import '../data/planning_service.dart';
 import '../data/settings_repository.dart';
 import '../data/task_repository.dart';
 import '../domain/app_settings.dart';
+import '../domain/device_preferences.dart';
 import '../domain/local_date.dart';
 import '../domain/local_time.dart';
 import '../domain/task.dart';
@@ -45,6 +47,19 @@ final settingsRepositoryProvider = Provider<SettingsRepository>(
       SettingsRepository(ref.watch(databaseProvider), ref.watch(clockProvider)),
 );
 
+final devicePrefsRepositoryProvider = Provider<DevicePrefsRepository>(
+  (ref) => DevicePrefsRepository(ref.watch(databaseProvider)),
+);
+
+final devicePrefsProvider = StreamProvider<DevicePreferences>(
+  (ref) => ref.watch(devicePrefsRepositoryProvider).watch(),
+);
+
+/// Préférences disponibles immédiatement, valeurs par défaut au chargement.
+final currentDevicePrefsProvider = Provider<DevicePreferences>(
+  (ref) => ref.watch(devicePrefsProvider).value ?? const DevicePreferences(),
+);
+
 final reminderSchedulerProvider = Provider<ReminderScheduler>((ref) {
   final gateway = ref.watch(notificationGatewayProvider);
   if (gateway == null) return const NoopReminderScheduler();
@@ -53,6 +68,7 @@ final reminderSchedulerProvider = Provider<ReminderScheduler>((ref) {
     settings: ref.watch(settingsRepositoryProvider),
     clock: ref.watch(clockProvider),
     gateway: gateway,
+    devicePrefs: ref.watch(devicePrefsRepositoryProvider),
   );
 });
 
@@ -109,6 +125,7 @@ final planningServiceProvider = Provider<PlanningService>(
     clock: ref.watch(clockProvider),
     scheduler: ref.watch(reminderSchedulerProvider),
     sync: ref.watch(syncServiceProvider) ?? const NoopSyncTrigger(),
+    devicePrefs: ref.watch(devicePrefsRepositoryProvider),
   ),
 );
 

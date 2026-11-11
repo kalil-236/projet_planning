@@ -9,6 +9,7 @@ import '../../app/providers.dart';
 import '../../app/router.dart';
 import '../../core/time_zones.dart';
 import '../../domain/app_settings.dart';
+import '../../domain/device_preferences.dart';
 import '../../domain/local_time.dart';
 import '../shared/common_widgets.dart';
 import 'account_card.dart';
@@ -104,6 +105,8 @@ class SettingsScreen extends ConsumerWidget {
                                 settings.copyWith(morningSummaryTime: time),
                               ),
                             ),
+                          if (ref.watch(notificationGatewayProvider) != null)
+                            const _ReportSwitches(),
                           ListTile(
                             leading: const Icon(LucideIcons.calendarClock),
                             title: const Text('Fuseau horaire'),
@@ -282,6 +285,27 @@ class _TimezoneDialogState extends State<_TimezoneDialog> {
           child: const Text('Fermer'),
         ),
       ],
+    );
+  }
+}
+
+/// Rapports propres au téléphone, là où les notifications sonnent.
+class _ReportSwitches extends ConsumerWidget {
+  const _ReportSwitches();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final prefs = ref.watch(currentDevicePrefsProvider);
+    Future<void> save(DevicePreferences updated) =>
+        ref.read(planningServiceProvider).saveDevicePrefs(updated);
+    return SwitchListTile(
+      secondary: const Icon(LucideIcons.moon),
+      title: const Text('Rapport du soir'),
+      subtitle: const Text(
+        'À la fin de journée : missions accomplies et report des restantes.',
+      ),
+      value: prefs.eveningReportEnabled,
+      onChanged: (value) => save(prefs.copyWith(eveningReportEnabled: value)),
     );
   }
 }

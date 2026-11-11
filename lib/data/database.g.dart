@@ -1931,6 +1931,480 @@ class SyncCursorsCompanion extends UpdateCompanion<SyncCursorRow> {
   }
 }
 
+class $DevicePrefsEntriesTable extends DevicePrefsEntries
+    with TableInfo<$DevicePrefsEntriesTable, DevicePrefsRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DevicePrefsEntriesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  static const VerificationMeta _eveningReportMeta = const VerificationMeta(
+    'eveningReport',
+  );
+  @override
+  late final GeneratedColumn<bool> eveningReport = GeneratedColumn<bool>(
+    'evening_report',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("evening_report" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
+  static const VerificationMeta _weeklyReportMeta = const VerificationMeta(
+    'weeklyReport',
+  );
+  @override
+  late final GeneratedColumn<bool> weeklyReport = GeneratedColumn<bool>(
+    'weekly_report',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("weekly_report" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
+  static const VerificationMeta _voiceNameMeta = const VerificationMeta(
+    'voiceName',
+  );
+  @override
+  late final GeneratedColumn<String> voiceName = GeneratedColumn<String>(
+    'voice_name',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _voiceLocaleMeta = const VerificationMeta(
+    'voiceLocale',
+  );
+  @override
+  late final GeneratedColumn<String> voiceLocale = GeneratedColumn<String>(
+    'voice_locale',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _speechRateMeta = const VerificationMeta(
+    'speechRate',
+  );
+  @override
+  late final GeneratedColumn<double> speechRate = GeneratedColumn<double>(
+    'speech_rate',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0.5),
+  );
+  static const VerificationMeta _speechPitchMeta = const VerificationMeta(
+    'speechPitch',
+  );
+  @override
+  late final GeneratedColumn<double> speechPitch = GeneratedColumn<double>(
+    'speech_pitch',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1.0),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    eveningReport,
+    weeklyReport,
+    voiceName,
+    voiceLocale,
+    speechRate,
+    speechPitch,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'device_prefs_entries';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<DevicePrefsRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('evening_report')) {
+      context.handle(
+        _eveningReportMeta,
+        eveningReport.isAcceptableOrUnknown(
+          data['evening_report']!,
+          _eveningReportMeta,
+        ),
+      );
+    }
+    if (data.containsKey('weekly_report')) {
+      context.handle(
+        _weeklyReportMeta,
+        weeklyReport.isAcceptableOrUnknown(
+          data['weekly_report']!,
+          _weeklyReportMeta,
+        ),
+      );
+    }
+    if (data.containsKey('voice_name')) {
+      context.handle(
+        _voiceNameMeta,
+        voiceName.isAcceptableOrUnknown(data['voice_name']!, _voiceNameMeta),
+      );
+    }
+    if (data.containsKey('voice_locale')) {
+      context.handle(
+        _voiceLocaleMeta,
+        voiceLocale.isAcceptableOrUnknown(
+          data['voice_locale']!,
+          _voiceLocaleMeta,
+        ),
+      );
+    }
+    if (data.containsKey('speech_rate')) {
+      context.handle(
+        _speechRateMeta,
+        speechRate.isAcceptableOrUnknown(data['speech_rate']!, _speechRateMeta),
+      );
+    }
+    if (data.containsKey('speech_pitch')) {
+      context.handle(
+        _speechPitchMeta,
+        speechPitch.isAcceptableOrUnknown(
+          data['speech_pitch']!,
+          _speechPitchMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  DevicePrefsRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DevicePrefsRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      eveningReport: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}evening_report'],
+      )!,
+      weeklyReport: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}weekly_report'],
+      )!,
+      voiceName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}voice_name'],
+      ),
+      voiceLocale: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}voice_locale'],
+      ),
+      speechRate: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}speech_rate'],
+      )!,
+      speechPitch: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}speech_pitch'],
+      )!,
+    );
+  }
+
+  @override
+  $DevicePrefsEntriesTable createAlias(String alias) {
+    return $DevicePrefsEntriesTable(attachedDatabase, alias);
+  }
+}
+
+class DevicePrefsRow extends DataClass implements Insertable<DevicePrefsRow> {
+  final int id;
+  final bool eveningReport;
+  final bool weeklyReport;
+  final String? voiceName;
+  final String? voiceLocale;
+  final double speechRate;
+  final double speechPitch;
+  const DevicePrefsRow({
+    required this.id,
+    required this.eveningReport,
+    required this.weeklyReport,
+    this.voiceName,
+    this.voiceLocale,
+    required this.speechRate,
+    required this.speechPitch,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['evening_report'] = Variable<bool>(eveningReport);
+    map['weekly_report'] = Variable<bool>(weeklyReport);
+    if (!nullToAbsent || voiceName != null) {
+      map['voice_name'] = Variable<String>(voiceName);
+    }
+    if (!nullToAbsent || voiceLocale != null) {
+      map['voice_locale'] = Variable<String>(voiceLocale);
+    }
+    map['speech_rate'] = Variable<double>(speechRate);
+    map['speech_pitch'] = Variable<double>(speechPitch);
+    return map;
+  }
+
+  DevicePrefsEntriesCompanion toCompanion(bool nullToAbsent) {
+    return DevicePrefsEntriesCompanion(
+      id: Value(id),
+      eveningReport: Value(eveningReport),
+      weeklyReport: Value(weeklyReport),
+      voiceName: voiceName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(voiceName),
+      voiceLocale: voiceLocale == null && nullToAbsent
+          ? const Value.absent()
+          : Value(voiceLocale),
+      speechRate: Value(speechRate),
+      speechPitch: Value(speechPitch),
+    );
+  }
+
+  factory DevicePrefsRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DevicePrefsRow(
+      id: serializer.fromJson<int>(json['id']),
+      eveningReport: serializer.fromJson<bool>(json['eveningReport']),
+      weeklyReport: serializer.fromJson<bool>(json['weeklyReport']),
+      voiceName: serializer.fromJson<String?>(json['voiceName']),
+      voiceLocale: serializer.fromJson<String?>(json['voiceLocale']),
+      speechRate: serializer.fromJson<double>(json['speechRate']),
+      speechPitch: serializer.fromJson<double>(json['speechPitch']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'eveningReport': serializer.toJson<bool>(eveningReport),
+      'weeklyReport': serializer.toJson<bool>(weeklyReport),
+      'voiceName': serializer.toJson<String?>(voiceName),
+      'voiceLocale': serializer.toJson<String?>(voiceLocale),
+      'speechRate': serializer.toJson<double>(speechRate),
+      'speechPitch': serializer.toJson<double>(speechPitch),
+    };
+  }
+
+  DevicePrefsRow copyWith({
+    int? id,
+    bool? eveningReport,
+    bool? weeklyReport,
+    Value<String?> voiceName = const Value.absent(),
+    Value<String?> voiceLocale = const Value.absent(),
+    double? speechRate,
+    double? speechPitch,
+  }) => DevicePrefsRow(
+    id: id ?? this.id,
+    eveningReport: eveningReport ?? this.eveningReport,
+    weeklyReport: weeklyReport ?? this.weeklyReport,
+    voiceName: voiceName.present ? voiceName.value : this.voiceName,
+    voiceLocale: voiceLocale.present ? voiceLocale.value : this.voiceLocale,
+    speechRate: speechRate ?? this.speechRate,
+    speechPitch: speechPitch ?? this.speechPitch,
+  );
+  DevicePrefsRow copyWithCompanion(DevicePrefsEntriesCompanion data) {
+    return DevicePrefsRow(
+      id: data.id.present ? data.id.value : this.id,
+      eveningReport: data.eveningReport.present
+          ? data.eveningReport.value
+          : this.eveningReport,
+      weeklyReport: data.weeklyReport.present
+          ? data.weeklyReport.value
+          : this.weeklyReport,
+      voiceName: data.voiceName.present ? data.voiceName.value : this.voiceName,
+      voiceLocale: data.voiceLocale.present
+          ? data.voiceLocale.value
+          : this.voiceLocale,
+      speechRate: data.speechRate.present
+          ? data.speechRate.value
+          : this.speechRate,
+      speechPitch: data.speechPitch.present
+          ? data.speechPitch.value
+          : this.speechPitch,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DevicePrefsRow(')
+          ..write('id: $id, ')
+          ..write('eveningReport: $eveningReport, ')
+          ..write('weeklyReport: $weeklyReport, ')
+          ..write('voiceName: $voiceName, ')
+          ..write('voiceLocale: $voiceLocale, ')
+          ..write('speechRate: $speechRate, ')
+          ..write('speechPitch: $speechPitch')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    eveningReport,
+    weeklyReport,
+    voiceName,
+    voiceLocale,
+    speechRate,
+    speechPitch,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DevicePrefsRow &&
+          other.id == this.id &&
+          other.eveningReport == this.eveningReport &&
+          other.weeklyReport == this.weeklyReport &&
+          other.voiceName == this.voiceName &&
+          other.voiceLocale == this.voiceLocale &&
+          other.speechRate == this.speechRate &&
+          other.speechPitch == this.speechPitch);
+}
+
+class DevicePrefsEntriesCompanion extends UpdateCompanion<DevicePrefsRow> {
+  final Value<int> id;
+  final Value<bool> eveningReport;
+  final Value<bool> weeklyReport;
+  final Value<String?> voiceName;
+  final Value<String?> voiceLocale;
+  final Value<double> speechRate;
+  final Value<double> speechPitch;
+  const DevicePrefsEntriesCompanion({
+    this.id = const Value.absent(),
+    this.eveningReport = const Value.absent(),
+    this.weeklyReport = const Value.absent(),
+    this.voiceName = const Value.absent(),
+    this.voiceLocale = const Value.absent(),
+    this.speechRate = const Value.absent(),
+    this.speechPitch = const Value.absent(),
+  });
+  DevicePrefsEntriesCompanion.insert({
+    this.id = const Value.absent(),
+    this.eveningReport = const Value.absent(),
+    this.weeklyReport = const Value.absent(),
+    this.voiceName = const Value.absent(),
+    this.voiceLocale = const Value.absent(),
+    this.speechRate = const Value.absent(),
+    this.speechPitch = const Value.absent(),
+  });
+  static Insertable<DevicePrefsRow> custom({
+    Expression<int>? id,
+    Expression<bool>? eveningReport,
+    Expression<bool>? weeklyReport,
+    Expression<String>? voiceName,
+    Expression<String>? voiceLocale,
+    Expression<double>? speechRate,
+    Expression<double>? speechPitch,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (eveningReport != null) 'evening_report': eveningReport,
+      if (weeklyReport != null) 'weekly_report': weeklyReport,
+      if (voiceName != null) 'voice_name': voiceName,
+      if (voiceLocale != null) 'voice_locale': voiceLocale,
+      if (speechRate != null) 'speech_rate': speechRate,
+      if (speechPitch != null) 'speech_pitch': speechPitch,
+    });
+  }
+
+  DevicePrefsEntriesCompanion copyWith({
+    Value<int>? id,
+    Value<bool>? eveningReport,
+    Value<bool>? weeklyReport,
+    Value<String?>? voiceName,
+    Value<String?>? voiceLocale,
+    Value<double>? speechRate,
+    Value<double>? speechPitch,
+  }) {
+    return DevicePrefsEntriesCompanion(
+      id: id ?? this.id,
+      eveningReport: eveningReport ?? this.eveningReport,
+      weeklyReport: weeklyReport ?? this.weeklyReport,
+      voiceName: voiceName ?? this.voiceName,
+      voiceLocale: voiceLocale ?? this.voiceLocale,
+      speechRate: speechRate ?? this.speechRate,
+      speechPitch: speechPitch ?? this.speechPitch,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (eveningReport.present) {
+      map['evening_report'] = Variable<bool>(eveningReport.value);
+    }
+    if (weeklyReport.present) {
+      map['weekly_report'] = Variable<bool>(weeklyReport.value);
+    }
+    if (voiceName.present) {
+      map['voice_name'] = Variable<String>(voiceName.value);
+    }
+    if (voiceLocale.present) {
+      map['voice_locale'] = Variable<String>(voiceLocale.value);
+    }
+    if (speechRate.present) {
+      map['speech_rate'] = Variable<double>(speechRate.value);
+    }
+    if (speechPitch.present) {
+      map['speech_pitch'] = Variable<double>(speechPitch.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DevicePrefsEntriesCompanion(')
+          ..write('id: $id, ')
+          ..write('eveningReport: $eveningReport, ')
+          ..write('weeklyReport: $weeklyReport, ')
+          ..write('voiceName: $voiceName, ')
+          ..write('voiceLocale: $voiceLocale, ')
+          ..write('speechRate: $speechRate, ')
+          ..write('speechPitch: $speechPitch')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -1939,6 +2413,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     this,
   );
   late final $SyncCursorsTable syncCursors = $SyncCursorsTable(this);
+  late final $DevicePrefsEntriesTable devicePrefsEntries =
+      $DevicePrefsEntriesTable(this);
   late final Index tasksDateIdx = Index(
     'tasks_date_idx',
     'CREATE INDEX tasks_date_idx ON tasks (date)',
@@ -1951,6 +2427,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     tasks,
     settingsEntries,
     syncCursors,
+    devicePrefsEntries,
     tasksDateIdx,
   ];
   @override
@@ -2890,6 +3367,266 @@ typedef $$SyncCursorsTableProcessedTableManager =
       SyncCursorRow,
       PrefetchHooks Function()
     >;
+typedef $$DevicePrefsEntriesTableCreateCompanionBuilder =
+    DevicePrefsEntriesCompanion Function({
+      Value<int> id,
+      Value<bool> eveningReport,
+      Value<bool> weeklyReport,
+      Value<String?> voiceName,
+      Value<String?> voiceLocale,
+      Value<double> speechRate,
+      Value<double> speechPitch,
+    });
+typedef $$DevicePrefsEntriesTableUpdateCompanionBuilder =
+    DevicePrefsEntriesCompanion Function({
+      Value<int> id,
+      Value<bool> eveningReport,
+      Value<bool> weeklyReport,
+      Value<String?> voiceName,
+      Value<String?> voiceLocale,
+      Value<double> speechRate,
+      Value<double> speechPitch,
+    });
+
+class $$DevicePrefsEntriesTableFilterComposer
+    extends Composer<_$AppDatabase, $DevicePrefsEntriesTable> {
+  $$DevicePrefsEntriesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get eveningReport => $composableBuilder(
+    column: $table.eveningReport,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get weeklyReport => $composableBuilder(
+    column: $table.weeklyReport,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get voiceName => $composableBuilder(
+    column: $table.voiceName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get voiceLocale => $composableBuilder(
+    column: $table.voiceLocale,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get speechRate => $composableBuilder(
+    column: $table.speechRate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get speechPitch => $composableBuilder(
+    column: $table.speechPitch,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$DevicePrefsEntriesTableOrderingComposer
+    extends Composer<_$AppDatabase, $DevicePrefsEntriesTable> {
+  $$DevicePrefsEntriesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get eveningReport => $composableBuilder(
+    column: $table.eveningReport,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get weeklyReport => $composableBuilder(
+    column: $table.weeklyReport,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get voiceName => $composableBuilder(
+    column: $table.voiceName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get voiceLocale => $composableBuilder(
+    column: $table.voiceLocale,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get speechRate => $composableBuilder(
+    column: $table.speechRate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get speechPitch => $composableBuilder(
+    column: $table.speechPitch,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$DevicePrefsEntriesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $DevicePrefsEntriesTable> {
+  $$DevicePrefsEntriesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<bool> get eveningReport => $composableBuilder(
+    column: $table.eveningReport,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get weeklyReport => $composableBuilder(
+    column: $table.weeklyReport,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get voiceName =>
+      $composableBuilder(column: $table.voiceName, builder: (column) => column);
+
+  GeneratedColumn<String> get voiceLocale => $composableBuilder(
+    column: $table.voiceLocale,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get speechRate => $composableBuilder(
+    column: $table.speechRate,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get speechPitch => $composableBuilder(
+    column: $table.speechPitch,
+    builder: (column) => column,
+  );
+}
+
+class $$DevicePrefsEntriesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $DevicePrefsEntriesTable,
+          DevicePrefsRow,
+          $$DevicePrefsEntriesTableFilterComposer,
+          $$DevicePrefsEntriesTableOrderingComposer,
+          $$DevicePrefsEntriesTableAnnotationComposer,
+          $$DevicePrefsEntriesTableCreateCompanionBuilder,
+          $$DevicePrefsEntriesTableUpdateCompanionBuilder,
+          (
+            DevicePrefsRow,
+            BaseReferences<
+              _$AppDatabase,
+              $DevicePrefsEntriesTable,
+              DevicePrefsRow
+            >,
+          ),
+          DevicePrefsRow,
+          PrefetchHooks Function()
+        > {
+  $$DevicePrefsEntriesTableTableManager(
+    _$AppDatabase db,
+    $DevicePrefsEntriesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$DevicePrefsEntriesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$DevicePrefsEntriesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$DevicePrefsEntriesTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<bool> eveningReport = const Value.absent(),
+                Value<bool> weeklyReport = const Value.absent(),
+                Value<String?> voiceName = const Value.absent(),
+                Value<String?> voiceLocale = const Value.absent(),
+                Value<double> speechRate = const Value.absent(),
+                Value<double> speechPitch = const Value.absent(),
+              }) => DevicePrefsEntriesCompanion(
+                id: id,
+                eveningReport: eveningReport,
+                weeklyReport: weeklyReport,
+                voiceName: voiceName,
+                voiceLocale: voiceLocale,
+                speechRate: speechRate,
+                speechPitch: speechPitch,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<bool> eveningReport = const Value.absent(),
+                Value<bool> weeklyReport = const Value.absent(),
+                Value<String?> voiceName = const Value.absent(),
+                Value<String?> voiceLocale = const Value.absent(),
+                Value<double> speechRate = const Value.absent(),
+                Value<double> speechPitch = const Value.absent(),
+              }) => DevicePrefsEntriesCompanion.insert(
+                id: id,
+                eveningReport: eveningReport,
+                weeklyReport: weeklyReport,
+                voiceName: voiceName,
+                voiceLocale: voiceLocale,
+                speechRate: speechRate,
+                speechPitch: speechPitch,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$DevicePrefsEntriesTable, DevicePrefsRow>(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $DevicePrefsEntriesTable,
+                    DevicePrefsRow
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$DevicePrefsEntriesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $DevicePrefsEntriesTable,
+      DevicePrefsRow,
+      $$DevicePrefsEntriesTableFilterComposer,
+      $$DevicePrefsEntriesTableOrderingComposer,
+      $$DevicePrefsEntriesTableAnnotationComposer,
+      $$DevicePrefsEntriesTableCreateCompanionBuilder,
+      $$DevicePrefsEntriesTableUpdateCompanionBuilder,
+      (
+        DevicePrefsRow,
+        BaseReferences<_$AppDatabase, $DevicePrefsEntriesTable, DevicePrefsRow>,
+      ),
+      DevicePrefsRow,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -2900,4 +3637,6 @@ class $AppDatabaseManager {
       $$SettingsEntriesTableTableManager(_db, _db.settingsEntries);
   $$SyncCursorsTableTableManager get syncCursors =>
       $$SyncCursorsTableTableManager(_db, _db.syncCursors);
+  $$DevicePrefsEntriesTableTableManager get devicePrefsEntries =>
+      $$DevicePrefsEntriesTableTableManager(_db, _db.devicePrefsEntries);
 }

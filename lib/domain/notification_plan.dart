@@ -4,6 +4,7 @@ import '../core/clock.dart';
 import '../core/french_format.dart';
 import '../core/time_zones.dart';
 import 'app_settings.dart';
+import 'device_preferences.dart';
 import 'local_date.dart';
 import 'notification_messages.dart';
 import 'task.dart';
@@ -17,7 +18,16 @@ const testNotificationId = 0;
 const _summaryMaxLength = 300;
 const _ellipsis = '…';
 
-enum NotificationKind { start, preReminder, morningSummary, test }
+enum NotificationKind {
+  start,
+  preReminder,
+  morningSummary,
+  eveningReport,
+  test,
+}
+
+/// Tâches restantes citées par leur titre dans le rapport du soir.
+const _eveningListedTasks = 4;
 
 @immutable
 class PlannedNotification {
@@ -30,6 +40,7 @@ class PlannedNotification {
     this.taskId,
     this.endsAt,
     this.endLabel,
+    this.reportDate,
   });
 
   final int id;
@@ -42,6 +53,10 @@ class PlannedNotification {
   /// Heure de fin locale, « 15h30 » : affichée dans la pastille de la barre
   /// d'état quand Android met la notification en avant.
   final String? endLabel;
+
+  /// Jour dont le rapport du soir propose de reporter les tâches restantes ;
+  /// `null` quand il n'y a rien à reporter.
+  final LocalDate? reportDate;
 
   /// Tâche visée par un rappel : ses boutons agissent sur elle (10.6).
   final String? taskId;
@@ -61,6 +76,7 @@ List<PlannedNotification> planNotifications({
   required List<Task> tasks,
   required AppSettings settings,
   required Clock clock,
+  DevicePreferences device = const DevicePreferences(),
 }) {
   final nowUtc = clock.nowUtc();
   final window = notificationWindow(localNow(clock, settings.timezone).date);
@@ -76,6 +92,9 @@ List<PlannedNotification> planNotifications({
     if (settings.morningSummaryEnabled)
       for (var i = 0; i < notificationWindowDays; i++)
         _summaryDraft(window.start.addDays(i), active, settings),
+    if (device.eveningReportEnabled)
+      for (var i = 0; i < notificationWindowDays; i++)
+        ?_eveningDraft(window.start.addDays(i), tasks, settings),
   ];
 
   final upcoming = drafts.where((d) => d.instant.isAfter(nowUtc)).toList()
@@ -92,6 +111,7 @@ List<PlannedNotification> planNotifications({
         taskId: draft.taskId,
         endsAt: draft.endsAt,
         endLabel: draft.endLabel,
+        reportDate: draft.reportDate,
       ),
   ];
 }
@@ -139,6 +159,7 @@ class _Draft {
     this.taskId,
     this.endsAt,
     this.endLabel,
+    this.reportDate,
   });
 
   /// Identité stable d'une notification d'une programmation à l'autre.
@@ -150,6 +171,7 @@ class _Draft {
   final String? taskId;
   final DateTime? endsAt;
   final String? endLabel;
+  final LocalDate? reportDate;
 }
 
 int _bySchedule(_Draft a, _Draft b) {
@@ -210,4 +232,63 @@ int _uniqueId(String key, Set<int> used) {
     hash = (hash + 1) & mask;
   }
   return hash;
+}
+
+/// Rapport du soir d'un jour, envoyé à la fin de journée, ou après la dernière
+/// tâche si elle finit plus tard. Aucun rapport pour un jour sans tâche.
+_Draft? _eveningDraft(
+  LocalDate date,
+  Iterable<Task> tasks,
+  AppSettings settings,
+) {
+  final day = tasks
+      .where(
+        (t) =>
+            t.date == date &&
+            t.deletedAt == null &&
+            t.status != TaskStatus.cancelled,
+      )
+      .toList();
+  if (day.isEmpty) return null;
+  final done = day.where((t) => t.status == TaskStatus.done).length;
+  final remaining = day.where((t) => t.status == TaskStatus.todo).toList()
+    ..sort((a, b) => a.start.compareTo(b.start));
+  var at = settings.dayEnd;
+  for (final task in day) {
+    if (task.end.isAfter(at)) at = task.end;
+  }
+  final key = 'evening|$date';
+  return _Draft(
+    key: key,
+    kind: NotificationKind.eveningReport,
+    instant: toInstant(date, at, settings.timezone),
+    title: eveningReportTitle(key),
+    body: remaining.isEmpty
+        ? eveningAllDone(key)
+        : eveningReportBody(done, day.length, remaining, key: key),
+    reportDate: remaining.isEmpty ? null : date,
+  );
+}
+
+/// « Monsieur, 3 sur 5 missions accomplies. Restent : Sport, Lecture. … »
+String eveningReportBody(
+  int done,
+  int total,
+  List<Task> remaining, {
+  String key = '',
+}) {
+  final listed = [
+    for (final task in remaining.take(_eveningListedTasks)) task.title,
+  ];
+  final others = remaining.length - listed.length;
+  final names = others > 0
+      ? '${listed.join(', ')} et ${others == 1 ? 'une autre' : '$others autres'}'
+      : listed.join(', ');
+  final label = remaining.length == 1 ? 'Reste' : 'Restent';
+  final full =
+      '${eveningPartialOpening(done, total, key)} $label : $names.'
+      '${eveningPartialClosing(key)}';
+  if (full.length <= _summaryMaxLength) return full;
+  return '${full.substring(0, _summaryMaxLength - _ellipsis.length).trimRight()}'
+      '$_ellipsis';
 }

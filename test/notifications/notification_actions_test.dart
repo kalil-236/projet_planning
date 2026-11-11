@@ -47,7 +47,7 @@ void main() {
   Future<bool> act(String actionId, {String taskId = 't1'}) =>
       applyNotificationAction(
         actionId: actionId,
-        taskId: taskId,
+        payload: taskId,
         tasks: tasks,
         service: service,
       );
@@ -56,7 +56,11 @@ void main() {
     expect(await act(doneActionId), isTrue);
 
     expect((await tasks.byId('t1'))!.status, TaskStatus.done);
-    expect(gateway.pending, isEmpty);
+    expect(
+      gateway.pending.values.where((n) => n.taskId != null),
+      isEmpty,
+      reason: 'seul le rapport du soir reste programmé',
+    );
   });
 
   test('« Décaler 15 min » déplace la tâche et ses rappels', () async {
@@ -99,6 +103,21 @@ void main() {
     expect((await tasks.byId('t1'))!.start, const LocalTime(23, 0));
   });
 
+  test('« Reporter à demain » du rapport du soir', () async {
+    expect(await act(postponeActionId, taskId: dayPayload(tuesday)), isTrue);
+    expect((await tasks.byId('t1'))!.date, wednesday);
+    expect(await act(postponeActionId, taskId: dayPayload(tuesday)), isFalse);
+    expect(await act(postponeActionId, taskId: 'jour:pas-une-date'), isFalse);
+  });
+
+  test('le rapport du soir porte le jour à reporter', () async {
+    await service.setStatus((await tasks.byId('t1'))!, TaskStatus.todo);
+    final report = gateway.pending.values.singleWhere(
+      (n) => n.kind == NotificationKind.eveningReport,
+    );
+    expect(report.reportDate, tuesday);
+  });
+
   test('un bouton inconnu est ignoré', () async {
     expect(await act('autre'), isFalse);
     expect((await tasks.byId('t1'))!.status, TaskStatus.todo);
@@ -112,11 +131,11 @@ void main() {
     );
 
     for (final notification in plan) {
-      expect(
-        notification.taskId,
-        notification.kind == NotificationKind.morningSummary ? isNull : 't1',
-        reason: notification.kind.name,
-      );
+      expect(notification.taskId, switch (notification.kind) {
+        NotificationKind.morningSummary ||
+        NotificationKind.eveningReport => isNull,
+        _ => 't1',
+      }, reason: notification.kind.name);
     }
   });
 }

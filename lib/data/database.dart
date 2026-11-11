@@ -63,12 +63,29 @@ class SyncCursors extends Table {
   Set<Column<Object>> get primaryKey => {id};
 }
 
-@DriftDatabase(tables: [Tasks, SettingsEntries, SyncCursors])
+/// Une seule ligne : préférences propres à l'appareil, jamais synchronisées.
+@DataClassName('DevicePrefsRow')
+class DevicePrefsEntries extends Table {
+  IntColumn get id => integer().withDefault(const Constant(1))();
+  BoolColumn get eveningReport => boolean().withDefault(const Constant(true))();
+  BoolColumn get weeklyReport => boolean().withDefault(const Constant(true))();
+  TextColumn get voiceName => text().nullable()();
+  TextColumn get voiceLocale => text().nullable()();
+  RealColumn get speechRate => real().withDefault(const Constant(0.5))();
+  RealColumn get speechPitch => real().withDefault(const Constant(1.0))();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+@DriftDatabase(
+  tables: [Tasks, SettingsEntries, SyncCursors, DevicePrefsEntries],
+)
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.executor);
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -87,6 +104,9 @@ class AppDatabase extends _$AppDatabase {
       }
       if (from < 4) {
         await migrator.addColumn(tasks, tasks.completedAt);
+      }
+      if (from < 5) {
+        await migrator.createTable(devicePrefsEntries);
       }
     },
   );

@@ -81,6 +81,46 @@ String morningBriefingOpening(int taskCount, String key) =>
 String morningBriefingClosing(String key) =>
     _pick(morningBriefingClosings, '$key|fin');
 
+const eveningReportTitles = [
+  'Rapport du soir, monsieur',
+  'Bilan de la journée',
+  'F.R.I.D.A.Y : rapport du soir',
+  'Fin de service, monsieur',
+];
+
+const eveningAllDoneMessages = [
+  'Mission accomplie, monsieur : tout est fait. Repos mérité.',
+  "Sans faute aujourd'hui, monsieur. Je n'ai rien à ajouter, ce qui est rare.",
+  'Toutes les missions sont bouclées. Même moi, je suis impressionnée.',
+  'Journée parfaite, monsieur. Je classe le dossier.',
+];
+
+List<String> eveningPartialOpenings(int done, int total) {
+  final score = '$done sur $total';
+  return [
+    "Monsieur, $score missions accomplies aujourd'hui.",
+    'Bilan : $score. Honorable, monsieur.',
+    'Rapport : $score objectifs atteints.',
+    'Journée chargée, monsieur : $score au compteur.',
+  ];
+}
+
+const eveningPartialClosings = [
+  ' Si elles sont faites, un simple « Fait » suffit. Sinon, je peux les reporter à demain.',
+  " Je peux les reporter à demain, monsieur, d'un seul geste.",
+  " Rien d'irréparable : demain est un autre jour.",
+];
+
+String eveningReportTitle(String key) => _pick(eveningReportTitles, key);
+
+String eveningAllDone(String key) => _pick(eveningAllDoneMessages, key);
+
+String eveningPartialOpening(int done, int total, String key) =>
+    _pick(eveningPartialOpenings(done, total), '$key|ouverture');
+
+String eveningPartialClosing(String key) =>
+    _pick(eveningPartialClosings, '$key|fin');
+
 String _pick(List<String> messages, String key) =>
     messages[stableHash(key) % messages.length];
 

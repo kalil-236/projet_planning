@@ -234,6 +234,21 @@ void main() {
       expect((await tasks.byId(task.id))!.completedAt, isNotNull);
     });
 
+    test('reporter à demain les tâches restantes du jour', () async {
+      await tasks.upsertAll([
+        makeTask(id: 'a', start: '17:00', end: '18:00'),
+        makeTask(id: 'b', status: TaskStatus.done),
+        makeTask(id: 'c', date: wednesday, start: '09:00', end: '10:00'),
+      ]);
+      expect(await service.postponeToNextDay(tuesday), 1);
+      final moved = (await tasks.byId('a'))!;
+      expect(moved.date, wednesday);
+      expect(moved.start, const LocalTime(17, 0));
+      expect(moved.shifted, isTrue);
+      expect((await tasks.byId('b'))!.date, tuesday);
+      expect(await service.postponeToNextDay(tuesday), 0);
+    });
+
     test('la suppression est logique', () async {
       final task = makeTask();
       await tasks.upsert(task);

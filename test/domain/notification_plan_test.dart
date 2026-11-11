@@ -1,5 +1,6 @@
 import 'package:assistant_planning/core/time_zones.dart';
 import 'package:assistant_planning/domain/app_settings.dart';
+import 'package:assistant_planning/domain/device_preferences.dart';
 import 'package:assistant_planning/domain/local_date.dart';
 import 'package:assistant_planning/domain/local_time.dart';
 import 'package:assistant_planning/domain/notification_messages.dart';
@@ -16,10 +17,14 @@ List<PlannedNotification> _plan(
   List<Task> tasks, {
   AppSettings settings = _noSummary,
   FakeClock? clock,
+  DevicePreferences device = const DevicePreferences(
+    eveningReportEnabled: false,
+  ),
 }) => planNotifications(
   tasks: tasks,
   settings: settings,
   clock: clock ?? FakeClock.porto(tuesday, 6),
+  device: device,
 );
 
 Iterable<NotificationKind> _kinds(List<PlannedNotification> plan) =>

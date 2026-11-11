@@ -7,9 +7,11 @@ import '../core/clock.dart';
 import '../core/french_format.dart';
 import '../core/time_zones.dart';
 import '../data/database.dart';
+import '../data/device_prefs_repository.dart';
 import '../data/planning_service.dart';
 import '../data/settings_repository.dart';
 import '../data/task_repository.dart';
+import '../domain/local_date.dart';
 import '../domain/task.dart';
 import 'notification_gateway.dart';
 import 'reminder_scheduler.dart';
@@ -19,15 +21,32 @@ const doneActionId = 'fait';
 const shiftActionId = 'decaler_15';
 const shiftActionMinutes = 15;
 
-/// Applique un bouton de notification. Renvoie `false` si rien n'a changé :
-/// tâche introuvable ou déjà traitée, ou décalage qui passerait minuit.
+/// Bouton « Reporter à demain » du rapport du soir.
+const postponeActionId = 'reporter_demain';
+
+/// Charge utile d'un rapport du soir : le jour concerné.
+const _dayPayloadPrefix = 'jour:';
+
+String dayPayload(LocalDate date) => '$_dayPayloadPrefix${date.toIso()}';
+
+/// Applique un bouton de notification. [payload] est l'identifiant de la
+/// tâche, ou le jour du rapport du soir. Renvoie `false` si rien n'a changé :
+/// tâche introuvable ou déjà traitée, décalage qui passerait minuit, ou rien
+/// à reporter.
 Future<bool> applyNotificationAction({
   required String actionId,
-  required String taskId,
+  required String payload,
   required TaskRepository tasks,
   required PlanningService service,
 }) async {
-  final task = await tasks.byId(taskId);
+  if (actionId == postponeActionId) {
+    if (!payload.startsWith(_dayPayloadPrefix)) return false;
+    final date = LocalDate.tryParse(
+      payload.substring(_dayPayloadPrefix.length),
+    );
+    return date != null && await service.postponeToNextDay(date) > 0;
+  }
+  final task = await tasks.byId(payload);
   if (task == null || task.status != TaskStatus.todo) return false;
   switch (actionId) {
     case doneActionId:
@@ -45,9 +64,9 @@ Future<bool> applyNotificationAction({
 /// Les changements seront envoyés au serveur à la prochaine synchronisation.
 @pragma('vm:entry-point')
 Future<void> onNotificationResponse(NotificationResponse response) async {
-  final taskId = response.payload;
+  final payload = response.payload;
   final actionId = response.actionId;
-  if (taskId == null || actionId == null || actionId.isEmpty) return;
+  if (payload == null || actionId == null || actionId.isEmpty) return;
 
   WidgetsFlutterBinding.ensureInitialized();
   DartPluginRegistrant.ensureInitialized();
@@ -61,7 +80,7 @@ Future<void> onNotificationResponse(NotificationResponse response) async {
     final settings = SettingsRepository(db, clock);
     await applyNotificationAction(
       actionId: actionId,
-      taskId: taskId,
+      payload: payload,
       tasks: tasks,
       service: PlanningService(
         tasks: tasks,
@@ -72,6 +91,7 @@ Future<void> onNotificationResponse(NotificationResponse response) async {
           settings: settings,
           clock: clock,
           gateway: AndroidNotificationGateway(),
+          devicePrefs: DevicePrefsRepository(db),
         ),
       ),
     );

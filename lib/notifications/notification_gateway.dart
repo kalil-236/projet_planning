@@ -40,6 +40,12 @@ class AndroidNotificationGateway implements NotificationGateway {
   static const _remindersChannelName = 'Rappels';
   static const _summaryChannelId = 'resume';
   static const _summaryChannelName = 'Résumé du matin';
+  static const _reportChannelId = 'rapports';
+  static const _reportChannelName = 'Rapports du soir et de la semaine';
+
+  static const _reportActions = [
+    AndroidNotificationAction(postponeActionId, 'Reporter à demain'),
+  ];
 
   /// Sans interface : la tâche est modifiée sans ouvrir l'application.
   static const _taskActions = [
@@ -74,6 +80,9 @@ class AndroidNotificationGateway implements NotificationGateway {
     );
     await _android.createNotificationChannel(
       const AndroidNotificationChannel(_summaryChannelId, _summaryChannelName),
+    );
+    await _android.createNotificationChannel(
+      const AndroidNotificationChannel(_reportChannelId, _reportChannelName),
     );
   }
 
@@ -136,7 +145,7 @@ class AndroidNotificationGateway implements NotificationGateway {
       title: notification.title,
       body: notification.body,
       scheduledDate: toZoned(notification.instant, timezone),
-      payload: notification.taskId,
+      payload: _payloadFor(notification),
       notificationDetails: NotificationDetails(
         android: _detailsFor(notification),
       ),
@@ -146,8 +155,21 @@ class AndroidNotificationGateway implements NotificationGateway {
     );
   }
 
+  String? _payloadFor(PlannedNotification notification) {
+    final reportDate = notification.reportDate;
+    return reportDate != null ? dayPayload(reportDate) : notification.taskId;
+  }
+
   AndroidNotificationDetails _detailsFor(PlannedNotification notification) {
     final style = BigTextStyleInformation(notification.body);
+    if (notification.kind == NotificationKind.eveningReport) {
+      return AndroidNotificationDetails(
+        _reportChannelId,
+        _reportChannelName,
+        styleInformation: style,
+        actions: notification.reportDate == null ? null : _reportActions,
+      );
+    }
     if (notification.kind == NotificationKind.morningSummary) {
       return AndroidNotificationDetails(
         _summaryChannelId,

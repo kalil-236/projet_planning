@@ -8,6 +8,7 @@ import '../core/text_sanitizer.dart';
 import '../core/time_zones.dart';
 import '../domain/app_settings.dart';
 import '../domain/category.dart';
+import '../domain/device_preferences.dart';
 import '../domain/local_date.dart';
 import '../domain/local_time.dart';
 import '../domain/plan_import.dart';
@@ -16,6 +17,7 @@ import '../domain/task.dart';
 import '../domain/task_ops.dart';
 import '../notifications/reminder_scheduler.dart';
 import '../sync/sync_service.dart';
+import 'device_prefs_repository.dart';
 import 'settings_repository.dart';
 import 'task_repository.dart';
 
@@ -41,6 +43,7 @@ class PlanningService {
     required this._clock,
     required this._scheduler,
     this._sync = const NoopSyncTrigger(),
+    this._devicePrefs,
   });
 
   final TaskRepository _tasks;
@@ -48,6 +51,7 @@ class PlanningService {
   final Clock _clock;
   final ReminderScheduler _scheduler;
   final SyncTrigger _sync;
+  final DevicePrefsRepository? _devicePrefs;
   final Uuid _uuid = const Uuid();
 
   Future<void> addTask({
@@ -135,6 +139,27 @@ class PlanningService {
     await _afterWrite();
   }
 
+  /// Reporte au lendemain, aux mêmes heures, les tâches encore à faire de
+  /// [date] (bouton du rapport du soir). Renvoie le nombre de tâches reportées.
+  Future<int> postponeToNextDay(LocalDate date) async {
+    final nowUtc = _clock.nowUtc();
+    final remaining = (await _tasks.activeInRange(DateRange(date, date)))
+        .where((task) => task.status == TaskStatus.todo)
+        .toList();
+    if (remaining.isEmpty) return 0;
+    await _tasks.upsertAll([
+      for (final task in remaining)
+        task.copyWith(
+          date: date.addDays(1),
+          shifted: true,
+          originalStart: task.originalStart ?? task.start,
+          updatedAt: nowUtc,
+        ),
+    ]);
+    await _afterWrite();
+    return remaining.length;
+  }
+
   Future<void> deleteTask(Task task) async {
     await _tasks.softDelete(task.id, _clock.nowUtc());
     await _afterWrite();
@@ -181,6 +206,13 @@ class PlanningService {
   Future<void> saveSettings(AppSettings settings) async {
     await _settings.save(settings);
     await _afterWrite();
+  }
+
+  /// Préférences de l'appareil : seuls les rappels sont recalculés, rien
+  /// n'est envoyé au serveur.
+  Future<void> saveDevicePrefs(DevicePreferences prefs) async {
+    await _devicePrefs?.save(prefs);
+    await _scheduler.rescheduleAll();
   }
 
   Future<void> _save(Task task) async {
