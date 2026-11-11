@@ -28,10 +28,20 @@ class PlannedNotification {
     required this.title,
     required this.body,
     this.taskId,
+    this.endsAt,
+    this.endLabel,
   });
 
   final int id;
   final NotificationKind kind;
+
+  /// Fin de la tâche pour le rappel de début : la notification reste affichée
+  /// avec un compte à rebours jusqu'à cet instant UTC, puis disparaît.
+  final DateTime? endsAt;
+
+  /// Heure de fin locale, « 15h30 » : affichée dans la pastille de la barre
+  /// d'état quand Android met la notification en avant.
+  final String? endLabel;
 
   /// Tâche visée par un rappel : ses boutons agissent sur elle (10.6).
   final String? taskId;
@@ -80,6 +90,8 @@ List<PlannedNotification> planNotifications({
         title: draft.title,
         body: draft.body,
         taskId: draft.taskId,
+        endsAt: draft.endsAt,
+        endLabel: draft.endLabel,
       ),
   ];
 }
@@ -125,6 +137,8 @@ class _Draft {
     required this.title,
     required this.body,
     this.taskId,
+    this.endsAt,
+    this.endLabel,
   });
 
   /// Identité stable d'une notification d'une programmation à l'autre.
@@ -134,6 +148,8 @@ class _Draft {
   final String title;
   final String body;
   final String? taskId;
+  final DateTime? endsAt;
+  final String? endLabel;
 }
 
 int _bySchedule(_Draft a, _Draft b) {
@@ -152,6 +168,8 @@ Iterable<_Draft> _draftsForTask(Task task, AppSettings settings) sync* {
     title: "C'est l'heure : ${task.title}",
     body: '${startReminderMessage(task.title, startKey)}\n$schedule',
     taskId: task.id,
+    endsAt: toInstant(task.date, task.end, settings.timezone),
+    endLabel: formatHour(task.end),
   );
   final before = task.reminderBeforeMin ?? settings.defaultReminderMin;
   if (before > 0) {

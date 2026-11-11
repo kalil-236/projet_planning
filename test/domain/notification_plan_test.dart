@@ -42,6 +42,18 @@ void main() {
       expect(start.instant, _porto(tuesday, 8));
     });
 
+    test("le rappel de début suit la tâche jusqu'à sa fin", () {
+      final plan = _plan([makeTask(title: 'Cours', end: '10:30')]);
+
+      final start = plan.singleWhere((n) => n.kind == NotificationKind.start);
+      expect(start.endsAt, _porto(tuesday, 10, 30));
+      expect(start.endLabel, '10h30');
+      final pre = plan.singleWhere(
+        (n) => n.kind == NotificationKind.preReminder,
+      );
+      expect(pre.endsAt, isNull);
+    });
+
     test('le pré-rappel utilise le délai par défaut des réglages', () {
       final plan = _plan([makeTask(title: 'Cours')]);
 

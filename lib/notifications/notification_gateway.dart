@@ -155,6 +155,16 @@ class AndroidNotificationGateway implements NotificationGateway {
         styleInformation: style,
       );
     }
+    final endsAt = notification.endsAt;
+    final duration = endsAt?.difference(notification.instant);
+    // Tâche en cours : notification persistante avec compte à rebours jusqu'à
+    // la fin, mise en avant (« Live Update ») sur Android 16, retirée d'elle-
+    // même à la fin prévue.
+    final live =
+        notification.kind == NotificationKind.start &&
+        endsAt != null &&
+        duration != null &&
+        duration > Duration.zero;
     return AndroidNotificationDetails(
       _remindersChannelId,
       _remindersChannelName,
@@ -162,6 +172,15 @@ class AndroidNotificationGateway implements NotificationGateway {
       priority: Priority.high,
       styleInformation: style,
       actions: notification.taskId == null ? null : _taskActions,
+      ongoing: live,
+      requestPromotedOngoing: live,
+      onlyAlertOnce: live,
+      usesChronometer: live,
+      chronometerCountDown: live,
+      when: live ? endsAt.millisecondsSinceEpoch : null,
+      timeoutAfter: live ? duration.inMilliseconds : null,
+      shortCriticalText: live ? notification.endLabel : null,
+      category: live ? AndroidNotificationCategory.event : null,
     );
   }
 }
