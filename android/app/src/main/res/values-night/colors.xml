@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Widget d'accueil en mode sombre : tokens sombres de app_colors.dart. -->
+    <color name="widget_surface">#1E293B</color>
+    <color name="widget_border">#334155</color>
+    <color name="widget_foreground">#F1F5F9</color>
+    <color name="widget_muted">#94A3B8</color>
+    <color name="widget_primary">#60A5FA</color>
+</resources>

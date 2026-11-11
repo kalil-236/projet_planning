@@ -19,6 +19,7 @@ import '../domain/local_time.dart';
 import '../domain/task.dart';
 import '../notifications/notification_gateway.dart';
 import '../notifications/reminder_scheduler.dart';
+import '../platform/today_widget.dart';
 import '../sync/supabase_sync_backend.dart';
 import '../sync/sync_backend.dart';
 import '../sync/sync_service.dart';
@@ -69,8 +70,16 @@ final reminderSchedulerProvider = Provider<ReminderScheduler>((ref) {
     clock: ref.watch(clockProvider),
     gateway: gateway,
     devicePrefs: ref.watch(devicePrefsRepositoryProvider),
+    widget: ref.watch(todayWidgetPublisherProvider),
   );
 });
+
+/// `null` hors d'Android, et dans les tests.
+final todayWidgetPublisherProvider = Provider<TodayWidgetPublisher?>(
+  (ref) => !kIsWeb && defaultTargetPlatform == TargetPlatform.android
+      ? const AndroidTodayWidgetPublisher()
+      : null,
+);
 
 /// Reprogramme au lancement et au retour au premier plan (section 10.2).
 final reminderLifecycleProvider = Provider<void>((ref) {

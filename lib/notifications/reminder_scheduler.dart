@@ -8,6 +8,8 @@ import '../data/task_repository.dart';
 import '../domain/device_preferences.dart';
 import '../domain/local_date.dart';
 import '../domain/notification_plan.dart';
+import '../domain/task.dart';
+import '../platform/today_widget.dart';
 import 'notification_gateway.dart';
 
 /// Reprogrammation des rappels, appelée après chaque changement (section 10.2).
@@ -30,6 +32,7 @@ class LocalReminderScheduler implements ReminderScheduler {
     required this._clock,
     required this._gateway,
     this._devicePrefs,
+    this._widget,
   });
 
   final TaskRepository _tasks;
@@ -39,6 +42,9 @@ class LocalReminderScheduler implements ReminderScheduler {
 
   /// `null` : préférences par défaut (rapport du soir activé).
   final DevicePrefsRepository? _devicePrefs;
+
+  /// Widget d'accueil, mis à jour avec les rappels.
+  final TodayWidgetPublisher? _widget;
 
   Future<void>? _running;
   bool _rerun = false;
@@ -70,11 +76,13 @@ class LocalReminderScheduler implements ReminderScheduler {
   Future<void> _reschedule() async {
     final settings = await _settings.current();
     final today = localNow(_clock, settings.timezone).date;
+    // Depuis lundi : le bilan du dimanche porte sur toute la semaine.
+    final tasks = await _tasks.activeInRange(
+      DateRange(today.monday, notificationWindow(today).end),
+    );
+    await _publishWidget(tasks, today, settings.timezone);
     final plan = planNotifications(
-      // Depuis lundi : le bilan du dimanche porte sur toute la semaine.
-      tasks: await _tasks.activeInRange(
-        DateRange(today.monday, notificationWindow(today).end),
-      ),
+      tasks: tasks,
       settings: settings,
       clock: _clock,
       device: await _devicePrefs?.current() ?? const DevicePreferences(),
@@ -99,6 +107,19 @@ class LocalReminderScheduler implements ReminderScheduler {
       } on ArgumentError {
         // L'instant vient de passer : l'alarme précédente, intacte, se déclenche.
       }
+    }
+  }
+
+  /// Un widget en erreur ne doit pas empêcher les rappels.
+  Future<void> _publishWidget(
+    List<Task> tasks,
+    LocalDate today,
+    String timezone,
+  ) async {
+    try {
+      await _widget?.publish(tasks: tasks, today: today, timezone: timezone);
+    } on Object catch (error) {
+      debugPrint('Widget non mis à jour : $error');
     }
   }
 }

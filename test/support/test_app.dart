@@ -53,6 +53,7 @@ Future<AppDatabase> pumpApp(
         loginRequiredProvider.overrideWithValue(loginRequired),
         inAppRemindersEnabledProvider.overrideWithValue(inAppReminders),
         sharedPlanSourceProvider.overrideWithValue(sharedPlanSource),
+        todayWidgetPublisherProvider.overrideWithValue(null),
       ],
       child: const AssistantPlanningApp(),
     ),

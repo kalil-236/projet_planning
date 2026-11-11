@@ -54,6 +54,18 @@
         <receiver
             android:exported="false"
             android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver"/>
+        <!-- Widget d'accueil « Prochaine mission ». -->
+        <receiver
+            android:name=".TodayWidgetProvider"
+            android:exported="false"
+            android:label="F.R.I.D.A.Y : prochaine mission">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/today_widget_info"/>
+        </receiver>
         <!-- Boutons « Fait » et « Décaler 15 min » des rappels. -->
         <receiver
             android:exported="false"

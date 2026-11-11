@@ -14,6 +14,7 @@ import '../data/settings_repository.dart';
 import '../data/task_repository.dart';
 import '../domain/local_date.dart';
 import '../domain/task.dart';
+import '../platform/today_widget.dart';
 import 'notification_gateway.dart';
 import 'reminder_scheduler.dart';
 
@@ -113,6 +114,7 @@ Future<void> onNotificationResponse(NotificationResponse response) async {
           clock: clock,
           gateway: AndroidNotificationGateway(),
           devicePrefs: DevicePrefsRepository(db),
+          widget: const AndroidTodayWidgetPublisher(),
         ),
       ),
     );
