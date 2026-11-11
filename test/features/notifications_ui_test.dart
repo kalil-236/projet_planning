@@ -16,6 +16,8 @@ Future<void> _openSettings(WidgetTester tester) async {
 Future<void> _openBattery(WidgetTester tester) async {
   await _openSettings(tester);
   await tester.scrollUntilVisible(find.text(_batteryTile), 100);
+  await tester.ensureVisible(find.text(_batteryTile));
+  await tester.pumpAndSettle();
   await tester.tap(find.text(_batteryTile));
   await tester.pumpAndSettle();
 }

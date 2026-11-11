@@ -6,8 +6,10 @@ import '../core/time_zones.dart';
 import 'app_settings.dart';
 import 'device_preferences.dart';
 import 'local_date.dart';
+import 'local_time.dart';
 import 'notification_messages.dart';
 import 'task.dart';
+import 'week_stats.dart';
 
 const notificationWindowDays = 7;
 const maxPlannedNotifications = 200;
@@ -23,8 +25,18 @@ enum NotificationKind {
   preReminder,
   morningSummary,
   eveningReport,
+  weeklyReport,
   test,
 }
+
+/// Charge utile qui ouvre l'onglet Bilan.
+const reportPayload = 'bilan';
+
+/// Charge utile du résumé du matin : ouvre Aujourd'hui.
+const briefingPayload = 'briefing';
+
+/// Le bilan de la semaine suit le rapport du soir du dimanche.
+const _weeklyAfterEvening = Duration(minutes: 5);
 
 /// Tâches restantes citées par leur titre dans le rapport du soir.
 const _eveningListedTasks = 4;
@@ -41,6 +53,7 @@ class PlannedNotification {
     this.endsAt,
     this.endLabel,
     this.reportDate,
+    this.payload,
   });
 
   final int id;
@@ -57,6 +70,10 @@ class PlannedNotification {
   /// Jour dont le rapport du soir propose de reporter les tâches restantes ;
   /// `null` quand il n'y a rien à reporter.
   final LocalDate? reportDate;
+
+  /// Écran à ouvrir quand on touche la notification ([reportPayload],
+  /// [briefingPayload]) ; les rappels de tâche portent leur [taskId].
+  final String? payload;
 
   /// Tâche visée par un rappel : ses boutons agissent sur elle (10.6).
   final String? taskId;
@@ -79,7 +96,8 @@ List<PlannedNotification> planNotifications({
   DevicePreferences device = const DevicePreferences(),
 }) {
   final nowUtc = clock.nowUtc();
-  final window = notificationWindow(localNow(clock, settings.timezone).date);
+  final today = localNow(clock, settings.timezone).date;
+  final window = notificationWindow(today);
   final active = tasks.where(
     (task) =>
         task.status == TaskStatus.todo &&
@@ -95,6 +113,8 @@ List<PlannedNotification> planNotifications({
     if (device.eveningReportEnabled)
       for (var i = 0; i < notificationWindowDays; i++)
         ?_eveningDraft(window.start.addDays(i), tasks, settings),
+    if (device.weeklyReportEnabled)
+      ?_weeklyDraft(today.monday, tasks, settings),
   ];
 
   final upcoming = drafts.where((d) => d.instant.isAfter(nowUtc)).toList()
@@ -112,6 +132,7 @@ List<PlannedNotification> planNotifications({
         endsAt: draft.endsAt,
         endLabel: draft.endLabel,
         reportDate: draft.reportDate,
+        payload: draft.payload,
       ),
   ];
 }
@@ -160,6 +181,7 @@ class _Draft {
     this.endsAt,
     this.endLabel,
     this.reportDate,
+    this.payload,
   });
 
   /// Identité stable d'une notification d'une programmation à l'autre.
@@ -172,6 +194,7 @@ class _Draft {
   final DateTime? endsAt;
   final String? endLabel;
   final LocalDate? reportDate;
+  final String? payload;
 }
 
 int _bySchedule(_Draft a, _Draft b) {
@@ -222,6 +245,7 @@ _Draft _summaryDraft(
     instant: toInstant(date, settings.morningSummaryTime, settings.timezone),
     title: morningSummaryTitle(key),
     body: morningSummaryBody(dayTasks, key: key),
+    payload: briefingPayload,
   );
 }
 
@@ -253,10 +277,7 @@ _Draft? _eveningDraft(
   final done = day.where((t) => t.status == TaskStatus.done).length;
   final remaining = day.where((t) => t.status == TaskStatus.todo).toList()
     ..sort((a, b) => a.start.compareTo(b.start));
-  var at = settings.dayEnd;
-  for (final task in day) {
-    if (task.end.isAfter(at)) at = task.end;
-  }
+  final at = _eveningTime(day, settings);
   final key = 'evening|$date';
   return _Draft(
     key: key,
@@ -291,4 +312,66 @@ String eveningReportBody(
   if (full.length <= _summaryMaxLength) return full;
   return '${full.substring(0, _summaryMaxLength - _ellipsis.length).trimRight()}'
       '$_ellipsis';
+}
+
+/// Fin de journée, ou fin de la dernière tâche si elle est plus tardive.
+LocalTime _eveningTime(Iterable<Task> dayTasks, AppSettings settings) {
+  var at = settings.dayEnd;
+  for (final task in dayTasks) {
+    if (task.deletedAt == null &&
+        task.status != TaskStatus.cancelled &&
+        task.end.isAfter(at)) {
+      at = task.end;
+    }
+  }
+  return at;
+}
+
+/// Bilan de la semaine qui commence le lundi [monday], le dimanche soir peu
+/// après le rapport du soir. Chiffres arrêtés à l'heure de l'envoi.
+_Draft? _weeklyDraft(LocalDate monday, List<Task> tasks, AppSettings settings) {
+  final sunday = monday.addDays(6);
+  final time = _eveningTime(tasks.where((t) => t.date == sunday), settings);
+  final stats = weekStats(
+    tasks: tasks,
+    monday: monday,
+    today: sunday,
+    now: time,
+  );
+  if (stats.isEmpty) return null;
+  final key = 'weekly|$monday';
+  return _Draft(
+    key: key,
+    kind: NotificationKind.weeklyReport,
+    instant: toInstant(
+      sunday,
+      time,
+      settings.timezone,
+    ).add(_weeklyAfterEvening),
+    title: weeklyReportTitle(key),
+    body: weeklyReportBody(stats),
+    payload: reportPayload,
+  );
+}
+
+/// « Semaine bouclée, monsieur : 23 missions sur 30 (77 %). … »
+String weeklyReportBody(WeekStats stats) {
+  final rate = stats.rate;
+  final score = rate == null
+      ? 'aucune mission due'
+      : '${stats.done} ${stats.done > 1 ? 'missions' : 'mission'} sur '
+            '${stats.due} (${(rate * 100).round()} %)';
+  CategoryStats? best;
+  for (final category in stats.categories) {
+    if (category.doneMinutes > 0 &&
+        (best == null || category.doneMinutes > best.doneMinutes)) {
+      best = category;
+    }
+  }
+  final strength = best == null
+      ? ''
+      : ' Point fort : ${best.category.label.toLowerCase()}, '
+            '${formatDuration(best.doneMinutes)} accomplies.';
+  return 'Semaine bouclée, monsieur : $score. ${weekVerdict(rate)}$strength'
+      ' Le détail vous attend dans le Bilan.';
 }

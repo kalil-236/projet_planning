@@ -298,14 +298,28 @@ class _ReportSwitches extends ConsumerWidget {
     final prefs = ref.watch(currentDevicePrefsProvider);
     Future<void> save(DevicePreferences updated) =>
         ref.read(planningServiceProvider).saveDevicePrefs(updated);
-    return SwitchListTile(
-      secondary: const Icon(LucideIcons.moon),
-      title: const Text('Rapport du soir'),
-      subtitle: const Text(
-        'À la fin de journée : missions accomplies et report des restantes.',
-      ),
-      value: prefs.eveningReportEnabled,
-      onChanged: (value) => save(prefs.copyWith(eveningReportEnabled: value)),
+    return Column(
+      children: [
+        SwitchListTile(
+          secondary: const Icon(LucideIcons.moon),
+          title: const Text('Rapport du soir'),
+          subtitle: const Text(
+            'À la fin de journée : missions accomplies et report des '
+            'restantes.',
+          ),
+          value: prefs.eveningReportEnabled,
+          onChanged: (value) =>
+              save(prefs.copyWith(eveningReportEnabled: value)),
+        ),
+        SwitchListTile(
+          secondary: const Icon(LucideIcons.chartColumn),
+          title: const Text('Bilan de la semaine'),
+          subtitle: const Text('Le dimanche soir, avec le détail dans Bilan.'),
+          value: prefs.weeklyReportEnabled,
+          onChanged: (value) =>
+              save(prefs.copyWith(weeklyReportEnabled: value)),
+        ),
+      ],
     );
   }
 }

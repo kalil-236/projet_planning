@@ -38,6 +38,10 @@ class FakeNotificationGateway implements NotificationGateway {
   int permissionRequests = 0;
   int exactSettingsOpened = 0;
   Object? scheduleError;
+  String? launchedWith;
+
+  @override
+  Future<String?> launchPayload() async => launchedWith;
 
   @override
   Future<bool> notificationsAllowed() async => allowed;

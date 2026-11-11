@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/widgets.dart';
@@ -58,6 +59,17 @@ Future<bool> applyNotificationAction({
   return false;
 }
 
+/// Bouton « Écouter » du résumé du matin : ouvre l'application, qui lit le
+/// briefing à voix haute.
+const listenActionId = 'ecouter';
+
+/// Charge utile transmise à l'application par le bouton « Écouter ».
+const listenPayload = 'ecouter';
+
+/// Notifications touchées pendant que l'application tourne : leur charge
+/// utile indique l'écran à ouvrir.
+final notificationTaps = StreamController<String>.broadcast();
+
 /// Point d'entrée des boutons, appelé par Android dans un moteur Flutter
 /// séparé, même quand l'application est fermée. La base est partagée avec
 /// l'application si elle tourne : ses écrans se mettent à jour d'eux-mêmes.
@@ -66,7 +78,16 @@ Future<bool> applyNotificationAction({
 Future<void> onNotificationResponse(NotificationResponse response) async {
   final payload = response.payload;
   final actionId = response.actionId;
-  if (payload == null || actionId == null || actionId.isEmpty) return;
+  if (payload == null) return;
+  if (actionId == null || actionId.isEmpty) {
+    // Simple toucher : l'application s'ouvre, l'écran suit la charge utile.
+    notificationTaps.add(payload);
+    return;
+  }
+  if (actionId == listenActionId) {
+    notificationTaps.add(listenPayload);
+    return;
+  }
 
   WidgetsFlutterBinding.ensureInitialized();
   DartPluginRegistrant.ensureInitialized();

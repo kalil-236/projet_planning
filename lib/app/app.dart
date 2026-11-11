@@ -6,6 +6,7 @@ import '../domain/app_settings.dart';
 import '../platform/shared_plan.dart';
 import 'destinations.dart';
 import 'in_app_reminders.dart';
+import 'notification_navigation.dart';
 import 'keyboard_shortcuts.dart';
 import 'providers.dart';
 import 'router.dart';
@@ -22,6 +23,7 @@ class AssistantPlanningApp extends ConsumerWidget {
     ref.watch(syncLifecycleProvider);
     ref.watch(inAppRemindersProvider);
     final router = ref.watch(routerProvider);
+    ref.watch(notificationNavigationProvider);
     // Fichier ouvert ou partagé depuis une autre application : aperçu d'import.
     ref.listen(pendingSharedPlanProvider, (_, next) {
       if (next != null) router.go(AppDestination.importPlan.path);

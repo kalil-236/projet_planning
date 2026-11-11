@@ -111,6 +111,14 @@ const eveningPartialClosings = [
   " Rien d'irréparable : demain est un autre jour.",
 ];
 
+const weeklyReportTitles = [
+  'Bilan de la semaine, monsieur',
+  'F.R.I.D.A.Y : rapport hebdomadaire',
+  'Débriefing de la semaine',
+];
+
+String weeklyReportTitle(String key) => _pick(weeklyReportTitles, key);
+
 String eveningReportTitle(String key) => _pick(eveningReportTitles, key);
 
 String eveningAllDone(String key) => _pick(eveningAllDoneMessages, key);

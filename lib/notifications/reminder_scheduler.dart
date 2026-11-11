@@ -6,6 +6,7 @@ import '../data/device_prefs_repository.dart';
 import '../data/settings_repository.dart';
 import '../data/task_repository.dart';
 import '../domain/device_preferences.dart';
+import '../domain/local_date.dart';
 import '../domain/notification_plan.dart';
 import 'notification_gateway.dart';
 
@@ -70,7 +71,10 @@ class LocalReminderScheduler implements ReminderScheduler {
     final settings = await _settings.current();
     final today = localNow(_clock, settings.timezone).date;
     final plan = planNotifications(
-      tasks: await _tasks.activeInRange(notificationWindow(today)),
+      // Depuis lundi : le bilan du dimanche porte sur toute la semaine.
+      tasks: await _tasks.activeInRange(
+        DateRange(today.monday, notificationWindow(today).end),
+      ),
       settings: settings,
       clock: _clock,
       device: await _devicePrefs?.current() ?? const DevicePreferences(),

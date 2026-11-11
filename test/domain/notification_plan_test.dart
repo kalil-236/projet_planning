@@ -19,6 +19,7 @@ List<PlannedNotification> _plan(
   FakeClock? clock,
   DevicePreferences device = const DevicePreferences(
     eveningReportEnabled: false,
+    weeklyReportEnabled: false,
   ),
 }) => planNotifications(
   tasks: tasks,

@@ -41,7 +41,10 @@ void main() {
     // Rapport du soir désactivé : ces tests comptent les rappels de tâche.
     final devicePrefs = DevicePrefsRepository(db);
     await devicePrefs.save(
-      const DevicePreferences(eveningReportEnabled: false),
+      const DevicePreferences(
+        eveningReportEnabled: false,
+        weeklyReportEnabled: false,
+      ),
     );
     scheduler = LocalReminderScheduler(
       tasks: tasks,

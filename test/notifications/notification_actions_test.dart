@@ -133,7 +133,8 @@ void main() {
     for (final notification in plan) {
       expect(notification.taskId, switch (notification.kind) {
         NotificationKind.morningSummary ||
-        NotificationKind.eveningReport => isNull,
+        NotificationKind.eveningReport ||
+        NotificationKind.weeklyReport => isNull,
         _ => 't1',
       }, reason: notification.kind.name);
     }

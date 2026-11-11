@@ -24,6 +24,9 @@ abstract interface class NotificationGateway {
 
   Future<Set<int>> pendingIds();
 
+  /// Charge utile de la notification qui a lancé l'application, s'il y en a.
+  Future<String?> launchPayload();
+
   Future<void> cancel(int id);
 
   /// Lève une [ArgumentError] si l'instant vient juste de passer.
@@ -121,6 +124,19 @@ class AndroidNotificationGateway implements NotificationGateway {
       Permission.ignoreBatteryOptimizations.request();
 
   @override
+  Future<String?> launchPayload() async {
+    await _ready;
+    final details = await _plugin.getNotificationAppLaunchDetails();
+    if (details == null || !details.didNotificationLaunchApp) return null;
+    final response = details.notificationResponse;
+    final actionId = response?.actionId;
+    if (actionId == listenActionId) return listenPayload;
+    // Les autres boutons agissent sans lancer l'application.
+    if (actionId != null && actionId.isNotEmpty) return null;
+    return response?.payload;
+  }
+
+  @override
   Future<Set<int>> pendingIds() async {
     await _ready;
     final pending = await _plugin.pendingNotificationRequests();
@@ -157,12 +173,14 @@ class AndroidNotificationGateway implements NotificationGateway {
 
   String? _payloadFor(PlannedNotification notification) {
     final reportDate = notification.reportDate;
-    return reportDate != null ? dayPayload(reportDate) : notification.taskId;
+    if (reportDate != null) return dayPayload(reportDate);
+    return notification.taskId ?? notification.payload;
   }
 
   AndroidNotificationDetails _detailsFor(PlannedNotification notification) {
     final style = BigTextStyleInformation(notification.body);
-    if (notification.kind == NotificationKind.eveningReport) {
+    if (notification.kind == NotificationKind.eveningReport ||
+        notification.kind == NotificationKind.weeklyReport) {
       return AndroidNotificationDetails(
         _reportChannelId,
         _reportChannelName,
