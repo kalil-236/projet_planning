@@ -53,6 +53,15 @@ void main() {
     expect(taskToRow(makeTask())['deleted_at'], isNull);
   });
 
+  test("l'heure de réalisation est transmise, absente sans migration", () {
+    final done = makeTask(status: TaskStatus.done)
+        .copyWith(completedAt: fixedInstant);
+
+    expect(remoteTaskFromRow(serverRow(done)).task.completedAt, fixedInstant);
+    final legacyServer = serverRow(done)..remove('completed_at');
+    expect(remoteTaskFromRow(legacyServer).task.completedAt, isNull);
+  });
+
   test('user_id et synced_at restent à la charge du serveur', () {
     final row = taskToRow(makeTask());
 

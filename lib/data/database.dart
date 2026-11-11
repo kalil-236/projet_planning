@@ -22,6 +22,7 @@ class Tasks extends Table {
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();
   DateTimeColumn get deletedAt => dateTime().nullable()();
+  DateTimeColumn get completedAt => dateTime().nullable()();
 
   /// Vrai tant que la dernière écriture locale n'a pas été envoyée au serveur.
   BoolColumn get pendingSync => boolean().withDefault(const Constant(true))();
@@ -67,7 +68,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.executor);
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -83,6 +84,9 @@ class AppDatabase extends _$AppDatabase {
         await migrator.addColumn(tasks, tasks.pendingSync);
         await migrator.addColumn(settingsEntries, settingsEntries.pendingSync);
         await migrator.createTable(syncCursors);
+      }
+      if (from < 4) {
+        await migrator.addColumn(tasks, tasks.completedAt);
       }
     },
   );

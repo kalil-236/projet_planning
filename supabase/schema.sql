@@ -28,6 +28,8 @@ create table public.tasks (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   deleted_at timestamptz,
+  -- Ajout de la phase 5 : instant où la tâche a été marquée faite.
+  completed_at timestamptz,
   -- Ajout à la section 7.3 : instant de réception par le serveur.
   synced_at timestamptz not null default clock_timestamp()
 );

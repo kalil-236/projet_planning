@@ -85,7 +85,7 @@ class PlanningService {
     final movedImport =
         original.source == TaskSource.import && edited.start != original.start;
     await _save(
-      edited.copyWith(
+      _withCompletion(original, edited).copyWith(
         title: sanitizeText(edited.title),
         notes: _cleanNotes(edited.notes),
         shifted: movedImport ? true : edited.shifted,
@@ -97,7 +97,7 @@ class PlanningService {
   }
 
   Future<void> setStatus(Task task, TaskStatus status) =>
-      _save(task.copyWith(status: status));
+      _save(_withCompletion(task, task.copyWith(status: status)));
 
   /// Remet une tâche dans l'état [snapshot] : « Annuler » après un geste.
   Future<void> restore(Task snapshot) => _save(snapshot);
@@ -192,6 +192,18 @@ class PlanningService {
   Future<void> _afterWrite() async {
     await _scheduler.rescheduleAll();
     unawaited(_sync.requestSync());
+  }
+
+  /// Note l'instant où la tâche devient faite, et l'oublie si elle ne l'est
+  /// plus.
+  Task _withCompletion(Task before, Task after) {
+    if (after.status != TaskStatus.done) {
+      return after.copyWith(completedAt: null);
+    }
+    if (before.status == TaskStatus.done && after.completedAt != null) {
+      return after;
+    }
+    return after.copyWith(completedAt: _clock.nowUtc());
   }
 
   String? _cleanNotes(String? notes) {

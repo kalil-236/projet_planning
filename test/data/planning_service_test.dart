@@ -205,6 +205,35 @@ void main() {
   });
 
   group('actions', () {
+    test(
+      "marquer faite note l'heure réelle, la remettre à faire l'oublie",
+      () async {
+        final task = makeTask();
+        await tasks.upsert(task);
+        await service.setStatus(task, TaskStatus.done);
+        final done = (await tasks.byId(task.id))!;
+        expect(done.completedAt, clock.nowUtc());
+
+        clock.advance(const Duration(minutes: 5));
+        await service.updateTask(done, done.copyWith(title: 'Renommée'));
+        expect(
+          (await tasks.byId(task.id))!.completedAt,
+          done.completedAt,
+          reason: 'modifier une tâche faite garde son heure de réalisation',
+        );
+
+        await service.setStatus(done, TaskStatus.todo);
+        expect((await tasks.byId(task.id))!.completedAt, isNull);
+      },
+    );
+
+    test('statut « Faite » choisi dans le formulaire', () async {
+      final task = makeTask();
+      await tasks.upsert(task);
+      await service.updateTask(task, task.copyWith(status: TaskStatus.done));
+      expect((await tasks.byId(task.id))!.completedAt, isNotNull);
+    });
+
     test('la suppression est logique', () async {
       final task = makeTask();
       await tasks.upsert(task);

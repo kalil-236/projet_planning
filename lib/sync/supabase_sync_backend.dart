@@ -83,14 +83,32 @@ class SupabaseSyncBackend implements SyncBackend {
       final end = i + _pushBatchSize < tasks.length
           ? i + _pushBatchSize
           : tasks.length;
-      await _client
-          .from('tasks')
-          .upsert(
-            tasks.sublist(i, end).map(taskToRow).toList(),
-            onConflict: 'id',
-          );
+      final rows = tasks.sublist(i, end).map(taskToRow).toList();
+      try {
+        await _upsertTasks(rows);
+      } on PostgrestException catch (error) {
+        // Serveur pas encore migré (supabase/migrations/002) : la colonne
+        // `completed_at` est inconnue. La synchronisation continue sans elle.
+        if (!_completedAtSupported || !error.message.contains('completed_at')) {
+          rethrow;
+        }
+        _completedAtSupported = false;
+        debugPrint('Colonne completed_at absente sur le serveur.');
+        await _upsertTasks(rows);
+      }
     }
   }
+
+  bool _completedAtSupported = true;
+
+  Future<void> _upsertTasks(List<Map<String, Object?>> rows) =>
+      _client.from('tasks').upsert([
+        for (final row in rows)
+          if (_completedAtSupported)
+            row
+          else
+            Map.of(row)..remove('completed_at'),
+      ], onConflict: 'id');
 
   @override
   Future<RemoteSettings?> fetchSettings() async {

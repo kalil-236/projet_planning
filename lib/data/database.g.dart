@@ -184,6 +184,17 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, TaskRow> {
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _completedAtMeta = const VerificationMeta(
+    'completedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> completedAt = GeneratedColumn<DateTime>(
+    'completed_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _pendingSyncMeta = const VerificationMeta(
     'pendingSync',
   );
@@ -217,6 +228,7 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, TaskRow> {
     createdAt,
     updatedAt,
     deletedAt,
+    completedAt,
     pendingSync,
   ];
   @override
@@ -347,6 +359,15 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, TaskRow> {
         deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
       );
     }
+    if (data.containsKey('completed_at')) {
+      context.handle(
+        _completedAtMeta,
+        completedAt.isAcceptableOrUnknown(
+          data['completed_at']!,
+          _completedAtMeta,
+        ),
+      );
+    }
     if (data.containsKey('pending_sync')) {
       context.handle(
         _pendingSyncMeta,
@@ -429,6 +450,10 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, TaskRow> {
         DriftSqlType.dateTime,
         data['${effectivePrefix}deleted_at'],
       ),
+      completedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}completed_at'],
+      ),
       pendingSync: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
         data['${effectivePrefix}pending_sync'],
@@ -459,6 +484,7 @@ class TaskRow extends DataClass implements Insertable<TaskRow> {
   final DateTime createdAt;
   final DateTime updatedAt;
   final DateTime? deletedAt;
+  final DateTime? completedAt;
 
   /// Vrai tant que la dernière écriture locale n'a pas été envoyée au serveur.
   final bool pendingSync;
@@ -479,6 +505,7 @@ class TaskRow extends DataClass implements Insertable<TaskRow> {
     required this.createdAt,
     required this.updatedAt,
     this.deletedAt,
+    this.completedAt,
     required this.pendingSync,
   });
   @override
@@ -509,6 +536,9 @@ class TaskRow extends DataClass implements Insertable<TaskRow> {
     map['updated_at'] = Variable<DateTime>(updatedAt);
     if (!nullToAbsent || deletedAt != null) {
       map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    if (!nullToAbsent || completedAt != null) {
+      map['completed_at'] = Variable<DateTime>(completedAt);
     }
     map['pending_sync'] = Variable<bool>(pendingSync);
     return map;
@@ -542,6 +572,9 @@ class TaskRow extends DataClass implements Insertable<TaskRow> {
       deletedAt: deletedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(deletedAt),
+      completedAt: completedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(completedAt),
       pendingSync: Value(pendingSync),
     );
   }
@@ -570,6 +603,7 @@ class TaskRow extends DataClass implements Insertable<TaskRow> {
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+      completedAt: serializer.fromJson<DateTime?>(json['completedAt']),
       pendingSync: serializer.fromJson<bool>(json['pendingSync']),
     );
   }
@@ -593,6 +627,7 @@ class TaskRow extends DataClass implements Insertable<TaskRow> {
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+      'completedAt': serializer.toJson<DateTime?>(completedAt),
       'pendingSync': serializer.toJson<bool>(pendingSync),
     };
   }
@@ -614,6 +649,7 @@ class TaskRow extends DataClass implements Insertable<TaskRow> {
     DateTime? createdAt,
     DateTime? updatedAt,
     Value<DateTime?> deletedAt = const Value.absent(),
+    Value<DateTime?> completedAt = const Value.absent(),
     bool? pendingSync,
   }) => TaskRow(
     id: id ?? this.id,
@@ -638,6 +674,7 @@ class TaskRow extends DataClass implements Insertable<TaskRow> {
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
     deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+    completedAt: completedAt.present ? completedAt.value : this.completedAt,
     pendingSync: pendingSync ?? this.pendingSync,
   );
   TaskRow copyWithCompanion(TasksCompanion data) {
@@ -666,6 +703,9 @@ class TaskRow extends DataClass implements Insertable<TaskRow> {
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+      completedAt: data.completedAt.present
+          ? data.completedAt.value
+          : this.completedAt,
       pendingSync: data.pendingSync.present
           ? data.pendingSync.value
           : this.pendingSync,
@@ -691,6 +731,7 @@ class TaskRow extends DataClass implements Insertable<TaskRow> {
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('deletedAt: $deletedAt, ')
+          ..write('completedAt: $completedAt, ')
           ..write('pendingSync: $pendingSync')
           ..write(')'))
         .toString();
@@ -714,6 +755,7 @@ class TaskRow extends DataClass implements Insertable<TaskRow> {
     createdAt,
     updatedAt,
     deletedAt,
+    completedAt,
     pendingSync,
   );
   @override
@@ -736,6 +778,7 @@ class TaskRow extends DataClass implements Insertable<TaskRow> {
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
           other.deletedAt == this.deletedAt &&
+          other.completedAt == this.completedAt &&
           other.pendingSync == this.pendingSync);
 }
 
@@ -756,6 +799,7 @@ class TasksCompanion extends UpdateCompanion<TaskRow> {
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<DateTime?> deletedAt;
+  final Value<DateTime?> completedAt;
   final Value<bool> pendingSync;
   final Value<int> rowid;
   const TasksCompanion({
@@ -775,6 +819,7 @@ class TasksCompanion extends UpdateCompanion<TaskRow> {
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
+    this.completedAt = const Value.absent(),
     this.pendingSync = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -795,6 +840,7 @@ class TasksCompanion extends UpdateCompanion<TaskRow> {
     required DateTime createdAt,
     required DateTime updatedAt,
     this.deletedAt = const Value.absent(),
+    this.completedAt = const Value.absent(),
     this.pendingSync = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
@@ -821,6 +867,7 @@ class TasksCompanion extends UpdateCompanion<TaskRow> {
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<DateTime>? deletedAt,
+    Expression<DateTime>? completedAt,
     Expression<bool>? pendingSync,
     Expression<int>? rowid,
   }) {
@@ -841,6 +888,7 @@ class TasksCompanion extends UpdateCompanion<TaskRow> {
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (deletedAt != null) 'deleted_at': deletedAt,
+      if (completedAt != null) 'completed_at': completedAt,
       if (pendingSync != null) 'pending_sync': pendingSync,
       if (rowid != null) 'rowid': rowid,
     });
@@ -863,6 +911,7 @@ class TasksCompanion extends UpdateCompanion<TaskRow> {
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<DateTime?>? deletedAt,
+    Value<DateTime?>? completedAt,
     Value<bool>? pendingSync,
     Value<int>? rowid,
   }) {
@@ -883,6 +932,7 @@ class TasksCompanion extends UpdateCompanion<TaskRow> {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       deletedAt: deletedAt ?? this.deletedAt,
+      completedAt: completedAt ?? this.completedAt,
       pendingSync: pendingSync ?? this.pendingSync,
       rowid: rowid ?? this.rowid,
     );
@@ -939,6 +989,9 @@ class TasksCompanion extends UpdateCompanion<TaskRow> {
     if (deletedAt.present) {
       map['deleted_at'] = Variable<DateTime>(deletedAt.value);
     }
+    if (completedAt.present) {
+      map['completed_at'] = Variable<DateTime>(completedAt.value);
+    }
     if (pendingSync.present) {
       map['pending_sync'] = Variable<bool>(pendingSync.value);
     }
@@ -967,6 +1020,7 @@ class TasksCompanion extends UpdateCompanion<TaskRow> {
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('deletedAt: $deletedAt, ')
+          ..write('completedAt: $completedAt, ')
           ..write('pendingSync: $pendingSync, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -1921,6 +1975,7 @@ typedef $$TasksTableCreateCompanionBuilder = TasksCompanion Function({
   required DateTime createdAt,
   required DateTime updatedAt,
   Value<DateTime?> deletedAt,
+  Value<DateTime?> completedAt,
   Value<bool> pendingSync,
   Value<int> rowid,
 });
@@ -1941,6 +1996,7 @@ typedef $$TasksTableUpdateCompanionBuilder = TasksCompanion Function({
   Value<DateTime> createdAt,
   Value<DateTime> updatedAt,
   Value<DateTime?> deletedAt,
+  Value<DateTime?> completedAt,
   Value<bool> pendingSync,
   Value<int> rowid,
 });
@@ -2030,6 +2086,11 @@ class $$TasksTableFilterComposer extends Composer<_$AppDatabase, $TasksTable> {
 
   ColumnFilters<DateTime> get deletedAt => $composableBuilder(
     column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get completedAt => $composableBuilder(
+    column: $table.completedAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2128,6 +2189,11 @@ class $$TasksTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<DateTime> get completedAt => $composableBuilder(
+    column: $table.completedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<bool> get pendingSync => $composableBuilder(
     column: $table.pendingSync,
     builder: (column) => ColumnOrderings(column),
@@ -2199,6 +2265,11 @@ class $$TasksTableAnnotationComposer
   GeneratedColumn<DateTime> get deletedAt =>
       $composableBuilder(column: $table.deletedAt, builder: (column) => column);
 
+  GeneratedColumn<DateTime> get completedAt => $composableBuilder(
+    column: $table.completedAt,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<bool> get pendingSync => $composableBuilder(
     column: $table.pendingSync,
     builder: (column) => column,
@@ -2249,6 +2320,7 @@ class $$TasksTableTableManager
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
+                Value<DateTime?> completedAt = const Value.absent(),
                 Value<bool> pendingSync = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => TasksCompanion(
@@ -2268,6 +2340,7 @@ class $$TasksTableTableManager
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 deletedAt: deletedAt,
+                completedAt: completedAt,
                 pendingSync: pendingSync,
                 rowid: rowid,
               ),
@@ -2289,6 +2362,7 @@ class $$TasksTableTableManager
                 required DateTime createdAt,
                 required DateTime updatedAt,
                 Value<DateTime?> deletedAt = const Value.absent(),
+                Value<DateTime?> completedAt = const Value.absent(),
                 Value<bool> pendingSync = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => TasksCompanion.insert(
@@ -2308,6 +2382,7 @@ class $$TasksTableTableManager
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 deletedAt: deletedAt,
+                completedAt: completedAt,
                 pendingSync: pendingSync,
                 rowid: rowid,
               ),

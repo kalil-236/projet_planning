@@ -8,7 +8,7 @@ import 'package:assistant_planning/domain/local_time.dart';
 import 'package:assistant_planning/domain/notification_plan.dart';
 import 'package:assistant_planning/domain/task.dart';
 import 'package:assistant_planning/notifications/reminder_scheduler.dart';
-import 'package:drift/drift.dart' hide isNotNull;
+import 'package:drift/drift.dart' hide isNotNull, isNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -220,6 +220,10 @@ void main() {
       (await TaskRepository(legacy).pendingSync()).single.id,
       'ancienne',
       reason: 'les tâches existantes doivent partir au premier envoi',
+    );
+    expect(
+      (await TaskRepository(legacy).byId('ancienne'))!.completedAt,
+      isNull,
     );
   });
 

@@ -23,11 +23,14 @@ Map<String, Object?> taskToRow(Task task) => {
   'created_at': _instant(task.createdAt),
   'updated_at': _instant(task.updatedAt),
   'deleted_at': task.deletedAt == null ? null : _instant(task.deletedAt!),
+  'completed_at': task.completedAt == null ? null : _instant(task.completedAt!),
 };
 
 RemoteTask remoteTaskFromRow(Map<String, dynamic> row) {
   final originalStart = row['original_start_time'] as String?;
   final deletedAt = row['deleted_at'] as String?;
+  // Absente tant que la migration 002 n'a pas été exécutée sur le serveur.
+  final completedAt = row['completed_at'] as String?;
   return RemoteTask(
     syncedAt: _parseInstant(row['synced_at'] as String),
     task: Task(
@@ -47,6 +50,7 @@ RemoteTask remoteTaskFromRow(Map<String, dynamic> row) {
       createdAt: _parseInstant(row['created_at'] as String),
       updatedAt: _parseInstant(row['updated_at'] as String),
       deletedAt: deletedAt == null ? null : _parseInstant(deletedAt),
+      completedAt: completedAt == null ? null : _parseInstant(completedAt),
     ),
   );
 }

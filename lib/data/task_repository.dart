@@ -156,6 +156,7 @@ class TaskRepository {
     createdAt: row.createdAt.toUtc(),
     updatedAt: row.updatedAt.toUtc(),
     deletedAt: row.deletedAt?.toUtc(),
+    completedAt: row.completedAt?.toUtc(),
   );
 
   TasksCompanion _toCompanion(Task task) => TasksCompanion.insert(
@@ -175,6 +176,7 @@ class TaskRepository {
     createdAt: task.createdAt,
     updatedAt: task.updatedAt,
     deletedAt: Value(task.deletedAt),
+    completedAt: Value(task.completedAt),
     pendingSync: const Value(true),
   );
 }

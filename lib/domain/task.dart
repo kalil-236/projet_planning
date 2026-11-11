@@ -51,6 +51,7 @@ class Task {
     this.originalStart,
     this.importBatchId,
     this.deletedAt,
+    this.completedAt,
   });
 
   final String id;
@@ -71,6 +72,11 @@ class Task {
   final DateTime createdAt;
   final DateTime updatedAt;
   final DateTime? deletedAt;
+
+  /// Instant UTC où la tâche a été marquée faite : comparé à l'heure de fin
+  /// prévue pour apprendre le rythme réel (bilan). `null` si elle n'est pas
+  /// faite.
+  final DateTime? completedAt;
 
   TaskDisplayState get displayState => switch (status) {
     TaskStatus.done => TaskDisplayState.done,
@@ -99,6 +105,7 @@ class Task {
     Object? originalStart = _unset,
     DateTime? updatedAt,
     Object? deletedAt = _unset,
+    Object? completedAt = _unset,
   }) {
     return Task(
       id: id,
@@ -123,6 +130,9 @@ class Task {
       deletedAt: identical(deletedAt, _unset)
           ? this.deletedAt
           : deletedAt as DateTime?,
+      completedAt: identical(completedAt, _unset)
+          ? this.completedAt
+          : completedAt as DateTime?,
     );
   }
 
@@ -141,7 +151,8 @@ class Task {
       other.shifted == shifted &&
       other.originalStart == originalStart &&
       other.updatedAt == updatedAt &&
-      other.deletedAt == deletedAt;
+      other.deletedAt == deletedAt &&
+      other.completedAt == completedAt;
 
   @override
   int get hashCode => Object.hash(id, updatedAt, status, date, start);
