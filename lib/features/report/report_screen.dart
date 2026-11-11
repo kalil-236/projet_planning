@@ -12,9 +12,11 @@ import '../../core/french_format.dart';
 import '../../domain/insights.dart';
 import '../../domain/local_date.dart';
 import '../../domain/notification_messages.dart';
+import '../../domain/notification_plan.dart';
 import '../../domain/plan_prompt.dart';
 import '../../domain/week_stats.dart';
 import '../shared/common_widgets.dart';
+import '../shared/listen_button.dart';
 import '../shared/task_visuals.dart';
 
 /// Jours remontés pour la série de jours réussis.
@@ -78,7 +80,12 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
             now: now.time,
             timezone: settings.timezone,
           );
+          final listen = ListenButton(
+            tooltip: 'Écouter le bilan',
+            text: () => spokenWeekReport(stats, insights),
+          );
           final header = _WeekHeader(
+            trailing: stats.isEmpty ? null : listen,
             monday: monday,
             isCurrent: _weekOffset == 0,
             onPrevious: () => setState(() => _weekOffset--),
@@ -168,8 +175,10 @@ class _WeekHeader extends StatelessWidget {
     required this.onPrevious,
     required this.onNext,
     required this.onCurrent,
+    this.trailing,
   });
 
+  final Widget? trailing;
   final LocalDate monday;
   final bool isCurrent;
   final VoidCallback onPrevious;
@@ -199,6 +208,7 @@ class _WeekHeader extends StatelessWidget {
         ),
         if (!isCurrent)
           TextButton(onPressed: onCurrent, child: const Text('Cette semaine')),
+        ?trailing,
       ],
     );
   }
@@ -825,4 +835,13 @@ class _InsightsCard extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// Bilan lu à voix haute : chiffres de la semaine puis observations.
+String spokenWeekReport(WeekStats stats, List<Insight> insights) {
+  final summary = weeklyReportBody(stats)
+      .replaceAll(' Le détail vous attend dans le Bilan.', '');
+  if (insights.isEmpty) return summary;
+  return '$summary Mes observations : '
+      '${insights.map((insight) => insight.message).join(' ')}';
 }

@@ -13,6 +13,7 @@ import '../../domain/device_preferences.dart';
 import '../../domain/local_time.dart';
 import '../shared/common_widgets.dart';
 import 'account_card.dart';
+import 'voice_card.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -41,6 +42,7 @@ class SettingsScreen extends ConsumerWidget {
                   children: [
                     if (kIsWeb) const _WebNotice(),
                     const AccountCard(),
+                    const VoiceCard(),
                     Card(
                       child: Column(
                         children: [

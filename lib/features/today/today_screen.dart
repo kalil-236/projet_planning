@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../app/destinations.dart';
+import '../../app/notification_navigation.dart';
 import '../../app/providers.dart';
 import '../../app/theme/app_colors.dart';
 import '../../core/french_format.dart';
@@ -13,10 +14,13 @@ import '../../domain/app_settings.dart';
 import '../../domain/day_gaps.dart';
 import '../../domain/local_date.dart';
 import '../../domain/local_time.dart';
+import '../../domain/spoken.dart';
 import '../../domain/task.dart';
 import '../../domain/task_draft.dart';
 import '../../domain/task_ops.dart';
+import '../../platform/speech.dart';
 import '../shared/common_widgets.dart';
+import '../shared/listen_button.dart';
 import '../shared/shift_dialogs.dart';
 import '../shared/timeline_layout.dart';
 import '../shared/timeline_widgets.dart';
@@ -34,8 +38,33 @@ class TodayScreen extends ConsumerWidget {
     final range = DateRange(now.date, now.date);
     final tasksAsync = ref.watch(tasksInRangeProvider(range));
 
+    String briefing() => spokenBriefing(
+      todayTasks: tasksForToday(tasksAsync.value ?? const [], now.date),
+      now: ref.read(nowProvider).time,
+      key: 'summary|${now.date}',
+    );
+
+    // Bouton « Écouter » du résumé du matin : lecture dès l'ouverture.
+    ref.listen(briefingRequestProvider, (_, _) async {
+      final tasks = await ref
+          .read(taskRepositoryProvider)
+          .activeInRange(DateRange(now.date, now.date));
+      await toggleSpeech(
+        ref.read(speakerProvider),
+        spokenBriefing(
+          todayTasks: tasksForToday(tasks, now.date),
+          now: ref.read(nowProvider).time,
+          key: 'summary|${now.date}',
+        ),
+        ref.read(currentDevicePrefsProvider),
+      );
+    });
+
     return Scaffold(
-      appBar: AppBar(title: Text(AppDestination.today.label)),
+      appBar: AppBar(
+        title: Text(AppDestination.today.label),
+        actions: [ListenButton(tooltip: 'Écouter le briefing', text: briefing)],
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => showTaskEditor(context),
         tooltip: 'Ajouter une tâche',

@@ -46,6 +46,15 @@ class AndroidNotificationGateway implements NotificationGateway {
   static const _reportChannelId = 'rapports';
   static const _reportChannelName = 'Rapports du soir et de la semaine';
 
+  /// Ouvre l'application, qui lit le briefing à voix haute.
+  static const _summaryActions = [
+    AndroidNotificationAction(
+      listenActionId,
+      'Écouter',
+      showsUserInterface: true,
+    ),
+  ];
+
   static const _reportActions = [
     AndroidNotificationAction(postponeActionId, 'Reporter à demain'),
   ];
@@ -193,6 +202,7 @@ class AndroidNotificationGateway implements NotificationGateway {
         _summaryChannelId,
         _summaryChannelName,
         styleInformation: style,
+        actions: _summaryActions,
       );
     }
     final endsAt = notification.endsAt;
